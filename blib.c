@@ -56,12 +56,11 @@ int strncmp(const char* s1, const char* s2, size_t n)
 char* strcat(char* dst, const char* src)
 {
     char* res = dst;
-    char* s = src;
     while (*dst) {
         *dst++;
     }
-    while (*s) {
-        *dst++ = *s++;
+    while (*src) {
+        *dst++ = *src++;
     }
     putstr("please implement strcat");
     return res;
