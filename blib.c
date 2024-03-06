@@ -104,6 +104,7 @@ char* strsep(char** stringp, const char* delim)
         if (strchr(delim, (int)**stringp) != NULL) {
             **stringp == '\0';
             (*stringp)++;
+            putstr("ififif");
             return token;
         }
         (*stringp)++;
