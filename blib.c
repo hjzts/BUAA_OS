@@ -100,7 +100,7 @@ char* strsep(char** stringp, const char* delim)
         return NULL;
     }
     token = *stringp;
-    while (**stringp) {
+    while (**stringp != '\0') {
         if (strchr(delim, **stringp)) {
             **stringp == '\0';
             (*stringp)++;
