@@ -1,7 +1,14 @@
 #include <blib.h>
 
-size_t strlen(const char *s) {
-    panic("please implement");
+size_t strlen(const char *str) {
+   size_t n = 0;
+   char *s = str;
+   while(*s) {
+	*s++;
+	n++;
+    }
+   return n;
+    //panic("please implement");
 }
 
 char *strcpy(char *dst, const char *src) {
@@ -43,11 +50,29 @@ int strncmp(const char *s1, const char *s2, size_t n) {
 }
 
 char *strcat(char *dst, const char *src) {
-    panic("please implement");
+    char *res = dst;
+    char *s = src;
+    while(*dst){
+        *dst++;
+    }
+    while(*s){
+    	*dst++ = *s++;
+    }
+    return res;
+    //panic("please implement");
 }
 
 char *strncat(char *dst, const char *src, size_t n){
-    panic("please implement");
+    char *res = dst;
+    char *s = src;
+    while(*dst) {
+        *dst++;
+    }
+    while(*s && n--) {
+        *dst++ = *s++;
+    }
+    return res;
+    //panic("please implement");
 }
 
 char *strchr(const char *str, int character){
@@ -62,7 +87,17 @@ char *strchr(const char *str, int character){
 }
 
 char* strsep(char** stringp, const char* delim){
-    panic("please implement");
+    if (*stringp == NULL) {
+        return NULL;
+    }
+    char *res = *stringp;
+    if(strchr(*stringp, *delim) == NULL) return NULL;
+    while(*stringp) {
+        *stringp = strchr(*stringp, *delim);
+    	*stringp++ = '\0';
+    }
+    return *res;
+    //panic("please implement");
 }
 
 
