@@ -7,7 +7,7 @@ size_t strlen(const char* s)
         *s++;
         n++;
     }
-    panic("please implement strlen");
+    patstr("please implement strlen");
     return n;
 }
 
@@ -63,7 +63,7 @@ char* strcat(char* dst, const char* src)
     while (*s) {
         *dst++ = *s++;
     }
-    panic("please implement strcat");
+    putstr("please implement strcat");
     return res;
 }
 
@@ -77,7 +77,7 @@ char* strncat(char* dst, const char* src, size_t n)
     while (*s && n--) {
         *dst++ = *s++;
     }
-    panic("please implement strncat");
+    putstr("please implement strncat");
     return res;
 }
 
@@ -105,7 +105,7 @@ char* strsep(char** stringp, const char* delim)
         *stringp = strchr(*stringp, *delim);
         *stringp++ = '\0';
     }
-    panic("please implement strsep");
+    putstr("please implement strsep");
     return *res;
 }
 
