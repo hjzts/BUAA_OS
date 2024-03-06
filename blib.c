@@ -100,10 +100,10 @@ char* strsep(char** stringp, const char* delim)
     char* res = *stringp;
     if (strchr(*stringp, *delim) == NULL)
         return NULL;
-    while (*stringp) {
-        *stringp = strchr(*stringp, (int)*delim);
-        *stringp++ = '\0';
-    }
+
+    *stringp = strchr(*stringp, (int)*delim);
+    *stringp++ = '\0';
+
     putstr("please implement strsep");
     return *res;
 }
