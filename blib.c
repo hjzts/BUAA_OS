@@ -107,7 +107,7 @@ char* strsep(char** stringp, const char* delim)
             putstr("ififif");
             putstr("\n");
             putstr(**stringp);
-            l return token;
+            return token;
         }
         (*stringp)++;
     }
