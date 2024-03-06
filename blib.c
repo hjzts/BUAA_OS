@@ -98,12 +98,15 @@ char* strsep(char** stringp, const char* delim)
         return NULL;
     }
     char* res = *stringp;
-    if (strchr(*stringp, (int)*delim) == NULL)
+    for (char* c = delim; *c; c++) {
+        if (strchr(*stringp, (int)*c) != NULL)
+            break;
         return NULL;
-
-    *stringp = strchr(*stringp, (int)*delim);
-    *stringp++ = '\0';
-
+    }
+    for (char* c = delim; *c; c++) {
+        *stringp = strchr(*stringp, (int)*c);
+        *stringp++ = '\0';
+    }
     putstr("please implement strsep");
     return res;
 }
