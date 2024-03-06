@@ -94,21 +94,22 @@ char* strchr(const char* str, int character)
 
 char* strsep(char** stringp, const char* delim)
 {
-    if (*stringp == NULL) {
+    char* token;
+
+    if (!*stringp) {
         return NULL;
     }
-    char* res = *stringp;
-    for (char* c = delim; *c; c++) {
-        if (strchr(*stringp, (int)*c) != NULL)
-            break;
-        return NULL;
+    token = *stringp;
+    while (**stringp) {
+        if (strchr(delim, **stringp)) {
+            **stringp == '\0';
+            *stringp++;
+            return token;
+        }
+        *stringp++;
     }
-    for (char* c = delim; *c; c++) {
-        *stringp = strchr(*stringp, (int)*c);
-        *stringp++ = '\0';
-    }
-    putstr("please implement strsep");
-    return res;
+    *stringp = NULL;
+    return token;
 }
 
 void* memset(void* s, int c, size_t n)
