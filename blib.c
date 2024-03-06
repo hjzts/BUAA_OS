@@ -98,7 +98,7 @@ char* strsep(char** stringp, const char* delim)
         return NULL;
     }
     char* res = *stringp;
-    if (strchr(*stringp, *delim) == NULL)
+    if (strchr(*stringp, (int)*delim) == NULL)
         return NULL;
 
     *stringp = strchr(*stringp, (int)*delim);
