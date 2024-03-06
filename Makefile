@@ -16,8 +16,9 @@ case_div:
 	./casegen div 100 > case_div
 
 calc:
+	make case_all
 	gcc calc.c -o calc
-	./calc < case_all
+	./calc < case_all > out
 case_all:
 	make case_add
 	make case_sub
