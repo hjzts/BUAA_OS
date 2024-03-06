@@ -105,7 +105,7 @@ char* strsep(char** stringp, const char* delim)
     *stringp++ = '\0';
 
     putstr("please implement strsep");
-    return *res;
+    return res;
 }
 
 void* memset(void* s, int c, size_t n)
