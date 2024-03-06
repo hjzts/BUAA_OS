@@ -57,8 +57,9 @@ int main()
     const char* delimiters = "+-*/";
     int index = 0;
     while ((token = strsep(&rest, delimiters)) != NULL) {
-        putstr("\n111");
+        putstr("\n111\n");
         putstr(token);
+        putstr("\n222\n");
         panic_on((strcmp(sarray[index++], token) != 0), "check failed at");
     }
     panic_on(index != 11, "check failed at");
