@@ -7,7 +7,7 @@ size_t strlen(const char* s)
         *s++;
         n++;
     }
-    patstr("please implement strlen");
+    putstr("please implement strlen");
     return n;
 }
 
