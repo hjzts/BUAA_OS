@@ -19,10 +19,10 @@ calc:
 	# make case_all
 	gcc calc.c -o calc
 	./calc < case_all > out
-	
+
 case_all:
 	gcc casegen.c -o casegen
-	# ./casegen add 100 >> case_all
+	# ./casegen add 100 > case_all
 	cat case_add >> case_all
 	# ./casegen sub 100 >> case_all
 	cat case_sub >> case_all
@@ -30,9 +30,6 @@ case_all:
 	cat case_mul >> case_all
 	# ./casegen div 100 >> case_all
 	cat case_div >> case_all
-
-
-
 
 clean:
 	rm -f out calc casegen case_* *.o
