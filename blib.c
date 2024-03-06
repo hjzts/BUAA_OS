@@ -103,10 +103,10 @@ char* strsep(char** stringp, const char* delim)
     while (**stringp) {
         if (strchr(delim, **stringp)) {
             **stringp == '\0';
-            *stringp++;
+            (*stringp)++;
             return token;
         }
-        *stringp++;
+        (*stringp)++;
     }
     *stringp = NULL;
     return token;
