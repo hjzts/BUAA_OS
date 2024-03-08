@@ -1,2 +1,3 @@
 test:
-	echo "csc"
+make -C ./code
+
