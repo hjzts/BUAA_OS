@@ -10,7 +10,7 @@ var:
 /* so that the byte 3 and word 7 is "connected" */
 /* Your code here. (1/6) */
 .align 0
-.word 7, 8, 9
+.word 7, 8, 9	
 
 .text
 /* We define '_start_mips' here as the entry of our program. */
