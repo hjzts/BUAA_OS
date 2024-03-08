@@ -9,7 +9,7 @@ var:
 /* use '.align <x>' to align the following words to 1-byte boundary (disabling word-alignment) */
 /* so that the byte 3 and word 7 is "connected" */
 /* Your code here. (1/6) */
-.align 1
+.align 0
 .word 7, 8, 9	
 
 .text
