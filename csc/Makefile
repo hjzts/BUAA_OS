@@ -1,3 +1,4 @@
 test:
-make -C ./code
+	make -C ./code
+	./code/main
 
