@@ -3,5 +3,5 @@ run:
 	gcc -c main.c -I ../include
 	gcc -o main  fibo.o main.o
 
-clean 
+clean: 
 	rm *.o
