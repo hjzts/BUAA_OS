@@ -52,7 +52,7 @@ EXPORT(_start_mips)
 	/* so that t2 is 6th argument of function hello. */
 	/* Your code here. (6/6) */
 
-	sw t2, 20(sp)
+	sw t2, 24(sp)
 
 	/* use 'j' to call the function 'hello', we use 'j' instead of 'jal' because 'hello' is 'noreturn' */
 	j       hello
