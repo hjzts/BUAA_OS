@@ -1,2 +1,2 @@
 test:
-	echo "csc/code"
+	make -C ./code
