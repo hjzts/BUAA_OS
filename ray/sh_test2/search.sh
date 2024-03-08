@@ -1,4 +1,8 @@
 #!/bin/bash
 #First you can use grep (-n) to find the number of lines of string.
 #Then you can use awk to separate the answer.
-grep -n int file | awk -F : '{print$1}'  
+file_name="$1"
+str="$2"
+out="$3"
+
+grep -n ${str} ${file} | awk -F : '{print$1}' > ${out}  
