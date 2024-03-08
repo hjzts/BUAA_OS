@@ -2,7 +2,7 @@
 .idea
 *.o
 *.swp
-*.objdump
+#*.objdump
 *~
 tags
 hello

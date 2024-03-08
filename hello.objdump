@@ -1,0 +1,371 @@
+
+hello：     文件格式 elf32-tradlittlemips
+hello
+
+
+Disassembly of section .text:
+
+80020000 <hello>:
+hello():
+/home/git/22373058/hello.c:4
+#include "output.h"
+#include <stddef.h>
+
+void hello(int a, int b, int c, int d, int e, int f) {
+80020000:	27bdffe8 	addiu	sp,sp,-24
+80020004:	afbf0014 	sw	ra,20(sp)
+80020008:	afbe0010 	sw	s8,16(sp)
+8002000c:	03a0f025 	move	s8,sp
+80020010:	afc40018 	sw	a0,24(s8)
+80020014:	afc5001c 	sw	a1,28(s8)
+80020018:	afc60020 	sw	a2,32(s8)
+8002001c:	afc70024 	sw	a3,36(s8)
+/home/git/22373058/hello.c:5
+	print_num(a);
+80020020:	8fc20018 	lw	v0,24(s8)
+80020024:	00402025 	move	a0,v0
+80020028:	0c00808a 	jal	80020228 <print_num>
+8002002c:	00000000 	nop
+/home/git/22373058/hello.c:6
+	print_str("\n");
+80020030:	3c028002 	lui	v0,0x8002
+80020034:	24440360 	addiu	a0,v0,864
+80020038:	0c00806a 	jal	800201a8 <print_str>
+8002003c:	00000000 	nop
+/home/git/22373058/hello.c:7
+	print_num(b);
+80020040:	8fc2001c 	lw	v0,28(s8)
+80020044:	00402025 	move	a0,v0
+80020048:	0c00808a 	jal	80020228 <print_num>
+8002004c:	00000000 	nop
+/home/git/22373058/hello.c:8
+	print_str("\n");
+80020050:	3c028002 	lui	v0,0x8002
+80020054:	24440360 	addiu	a0,v0,864
+80020058:	0c00806a 	jal	800201a8 <print_str>
+8002005c:	00000000 	nop
+/home/git/22373058/hello.c:9
+	print_num(c);
+80020060:	8fc20020 	lw	v0,32(s8)
+80020064:	00402025 	move	a0,v0
+80020068:	0c00808a 	jal	80020228 <print_num>
+8002006c:	00000000 	nop
+/home/git/22373058/hello.c:10
+	print_str("\n");
+80020070:	3c028002 	lui	v0,0x8002
+80020074:	24440360 	addiu	a0,v0,864
+80020078:	0c00806a 	jal	800201a8 <print_str>
+8002007c:	00000000 	nop
+/home/git/22373058/hello.c:11
+	print_num(d);
+80020080:	8fc20024 	lw	v0,36(s8)
+80020084:	00402025 	move	a0,v0
+80020088:	0c00808a 	jal	80020228 <print_num>
+8002008c:	00000000 	nop
+/home/git/22373058/hello.c:12
+	print_str("\n");
+80020090:	3c028002 	lui	v0,0x8002
+80020094:	24440360 	addiu	a0,v0,864
+80020098:	0c00806a 	jal	800201a8 <print_str>
+8002009c:	00000000 	nop
+/home/git/22373058/hello.c:13
+	print_num(e);
+800200a0:	8fc20028 	lw	v0,40(s8)
+800200a4:	00402025 	move	a0,v0
+800200a8:	0c00808a 	jal	80020228 <print_num>
+800200ac:	00000000 	nop
+/home/git/22373058/hello.c:14
+	print_str("\n");
+800200b0:	3c028002 	lui	v0,0x8002
+800200b4:	24440360 	addiu	a0,v0,864
+800200b8:	0c00806a 	jal	800201a8 <print_str>
+800200bc:	00000000 	nop
+/home/git/22373058/hello.c:15
+	print_num(f);
+800200c0:	8fc2002c 	lw	v0,44(s8)
+800200c4:	00402025 	move	a0,v0
+800200c8:	0c00808a 	jal	80020228 <print_num>
+800200cc:	00000000 	nop
+/home/git/22373058/hello.c:16
+	print_str("\n");
+800200d0:	3c028002 	lui	v0,0x8002
+800200d4:	24440360 	addiu	a0,v0,864
+800200d8:	0c00806a 	jal	800201a8 <print_str>
+800200dc:	00000000 	nop
+/home/git/22373058/hello.c:17
+	halt();
+800200e0:	0c00805d 	jal	80020174 <halt>
+800200e4:	00000000 	nop
+/home/git/22373058/hello.c:18
+}
+800200e8:	00000000 	nop
+800200ec:	03c0e825 	move	sp,s8
+800200f0:	8fbf0014 	lw	ra,20(sp)
+800200f4:	8fbe0010 	lw	s8,16(sp)
+800200f8:	27bd0018 	addiu	sp,sp,24
+800200fc:	03e00008 	jr	ra
+80020100:	00000000 	nop
+	...
+
+80020110 <printcharc>:
+printcharc():
+/home/git/22373058/output.c:5
+#include <machine.h>
+#include <stddef.h>
+#include <output.h>
+
+void printcharc(char ch) {
+80020110:	27bdfff8 	addiu	sp,sp,-8
+80020114:	afbe0004 	sw	s8,4(sp)
+80020118:	03a0f025 	move	s8,sp
+8002011c:	00801025 	move	v0,a0
+80020120:	a3c20008 	sb	v0,8(s8)
+/home/git/22373058/output.c:6
+    while (!(*((volatile char *)(KSEG1 + MALTA_SERIAL_LSR)) & MALTA_SERIAL_THR_EMPTY)) {
+80020124:	00000000 	nop
+/home/git/22373058/output.c:6 (discriminator 1)
+80020128:	3c02b800 	lui	v0,0xb800
+8002012c:	344203fd 	ori	v0,v0,0x3fd
+80020130:	90420000 	lbu	v0,0(v0)
+80020134:	00021600 	sll	v0,v0,0x18
+80020138:	00021603 	sra	v0,v0,0x18
+8002013c:	304200ff 	andi	v0,v0,0xff
+80020140:	30420020 	andi	v0,v0,0x20
+80020144:	1040fff8 	beqz	v0,80020128 <printcharc+0x18>
+80020148:	00000000 	nop
+/home/git/22373058/output.c:8
+    }
+    *((volatile char *)(KSEG1 + MALTA_SERIAL_DATA)) = ch;
+8002014c:	3c02b800 	lui	v0,0xb800
+80020150:	344203f8 	ori	v0,v0,0x3f8
+80020154:	93c30008 	lbu	v1,8(s8)
+80020158:	a0430000 	sb	v1,0(v0)
+/home/git/22373058/output.c:9
+}
+8002015c:	00000000 	nop
+80020160:	03c0e825 	move	sp,s8
+80020164:	8fbe0004 	lw	s8,4(sp)
+80020168:	27bd0008 	addiu	sp,sp,8
+8002016c:	03e00008 	jr	ra
+80020170:	00000000 	nop
+
+80020174 <halt>:
+halt():
+/home/git/22373058/output.c:11
+
+void halt(void) {
+80020174:	27bdfff8 	addiu	sp,sp,-8
+80020178:	afbe0004 	sw	s8,4(sp)
+8002017c:	03a0f025 	move	s8,sp
+/home/git/22373058/output.c:12
+    *(volatile char *)(KSEG1 + MALTA_FPGA_HALT) = 0x42;
+80020180:	3c02bf00 	lui	v0,0xbf00
+80020184:	34420500 	ori	v0,v0,0x500
+80020188:	24030042 	li	v1,66
+8002018c:	a0430000 	sb	v1,0(v0)
+/home/git/22373058/output.c:13
+}
+80020190:	00000000 	nop
+80020194:	03c0e825 	move	sp,s8
+80020198:	8fbe0004 	lw	s8,4(sp)
+8002019c:	27bd0008 	addiu	sp,sp,8
+800201a0:	03e00008 	jr	ra
+800201a4:	00000000 	nop
+
+800201a8 <print_str>:
+print_str():
+/home/git/22373058/output.c:15
+
+void print_str(const char *buf) {
+800201a8:	27bdffe0 	addiu	sp,sp,-32
+800201ac:	afbf001c 	sw	ra,28(sp)
+800201b0:	afbe0018 	sw	s8,24(sp)
+800201b4:	03a0f025 	move	s8,sp
+800201b8:	afc40020 	sw	a0,32(s8)
+/home/git/22373058/output.c:16
+    for (int i = 0; buf[i]; i++) {
+800201bc:	afc00010 	sw	zero,16(s8)
+800201c0:	1000000b 	b	800201f0 <print_str+0x48>
+800201c4:	00000000 	nop
+/home/git/22373058/output.c:17 (discriminator 3)
+        printcharc(buf[i]);
+800201c8:	8fc20010 	lw	v0,16(s8)
+800201cc:	8fc30020 	lw	v1,32(s8)
+800201d0:	00621021 	addu	v0,v1,v0
+800201d4:	80420000 	lb	v0,0(v0)
+800201d8:	00402025 	move	a0,v0
+800201dc:	0c008044 	jal	80020110 <printcharc>
+800201e0:	00000000 	nop
+/home/git/22373058/output.c:16 (discriminator 3)
+    for (int i = 0; buf[i]; i++) {
+800201e4:	8fc20010 	lw	v0,16(s8)
+800201e8:	24420001 	addiu	v0,v0,1
+800201ec:	afc20010 	sw	v0,16(s8)
+/home/git/22373058/output.c:16 (discriminator 1)
+800201f0:	8fc20010 	lw	v0,16(s8)
+800201f4:	8fc30020 	lw	v1,32(s8)
+800201f8:	00621021 	addu	v0,v1,v0
+800201fc:	80420000 	lb	v0,0(v0)
+80020200:	1440fff1 	bnez	v0,800201c8 <print_str+0x20>
+80020204:	00000000 	nop
+	...
+/home/git/22373058/output.c:19
+    }
+}
+80020210:	03c0e825 	move	sp,s8
+80020214:	8fbf001c 	lw	ra,28(sp)
+80020218:	8fbe0018 	lw	s8,24(sp)
+8002021c:	27bd0020 	addiu	sp,sp,32
+80020220:	03e00008 	jr	ra
+80020224:	00000000 	nop
+
+80020228 <print_num>:
+print_num():
+/home/git/22373058/output.c:21
+
+void print_num(unsigned long u) {
+80020228:	27bdffe0 	addiu	sp,sp,-32
+8002022c:	afbf001c 	sw	ra,28(sp)
+80020230:	afbe0018 	sw	s8,24(sp)
+80020234:	03a0f025 	move	s8,sp
+80020238:	afc40020 	sw	a0,32(s8)
+/home/git/22373058/output.c:26
+    if (u < 0) {
+        printcharc('-');
+        u = -u;
+    }
+    char digit = '0' + u % 10;
+8002023c:	8fc40020 	lw	a0,32(s8)
+80020240:	3c02cccc 	lui	v0,0xcccc
+80020244:	3442cccd 	ori	v0,v0,0xcccd
+80020248:	00820019 	multu	a0,v0
+8002024c:	00001010 	mfhi	v0
+80020250:	000218c2 	srl	v1,v0,0x3
+80020254:	00601025 	move	v0,v1
+80020258:	00021080 	sll	v0,v0,0x2
+8002025c:	00431021 	addu	v0,v0,v1
+80020260:	00021040 	sll	v0,v0,0x1
+80020264:	00821823 	subu	v1,a0,v0
+80020268:	306200ff 	andi	v0,v1,0xff
+8002026c:	24420030 	addiu	v0,v0,48
+80020270:	304200ff 	andi	v0,v0,0xff
+80020274:	a3c20010 	sb	v0,16(s8)
+/home/git/22373058/output.c:27
+    u /= 10;
+80020278:	8fc30020 	lw	v1,32(s8)
+8002027c:	3c02cccc 	lui	v0,0xcccc
+80020280:	3442cccd 	ori	v0,v0,0xcccd
+80020284:	00620019 	multu	v1,v0
+80020288:	00001010 	mfhi	v0
+8002028c:	000210c2 	srl	v0,v0,0x3
+80020290:	afc20020 	sw	v0,32(s8)
+/home/git/22373058/output.c:28
+    if (u != 0) {
+80020294:	8fc20020 	lw	v0,32(s8)
+80020298:	10400004 	beqz	v0,800202ac <print_num+0x84>
+8002029c:	00000000 	nop
+/home/git/22373058/output.c:29
+        print_num(u);
+800202a0:	8fc40020 	lw	a0,32(s8)
+800202a4:	0c00808a 	jal	80020228 <print_num>
+800202a8:	00000000 	nop
+/home/git/22373058/output.c:31
+    }
+    printcharc(digit);
+800202ac:	83c20010 	lb	v0,16(s8)
+800202b0:	00402025 	move	a0,v0
+800202b4:	0c008044 	jal	80020110 <printcharc>
+800202b8:	00000000 	nop
+/home/git/22373058/output.c:32
+}
+800202bc:	00000000 	nop
+800202c0:	03c0e825 	move	sp,s8
+800202c4:	8fbf001c 	lw	ra,28(sp)
+800202c8:	8fbe0018 	lw	s8,24(sp)
+800202cc:	27bd0020 	addiu	sp,sp,32
+800202d0:	03e00008 	jr	ra
+800202d4:	00000000 	nop
+	...
+
+800202e0 <_start_mips>:
+_start_mips():
+/home/git/22373058/start.S:20
+.text
+/* We define '_start_mips' here as the entry of our program. */
+EXPORT(_start_mips)
+.set at
+.set reorder
+	mtc0    zero, CP0_STATUS
+800202e0:	40806000 	mtc0	zero,c0_status
+/home/git/22373058/start.S:21
+	li      sp, 0x84000000
+800202e4:	3c1d8400 	lui	sp,0x8400
+/home/git/22373058/start.S:23
+	/* Load the address of the string 'str' into the first parameter register. */
+	la      a0, str
+800202e8:	3c048002 	lui	a0,0x8002
+800202ec:	24840370 	addiu	a0,a0,880
+/home/git/22373058/start.S:27
+	/* use 'addiu  sp, sp, <x>' to push a proper-sized frame onto the stack for Nonleaf function 'print_str'. */
+	/* Your code here. (2/6) */
+
+	addiu sp, sp, -8 # str size
+800202f0:	27bdfff8 	addiu	sp,sp,-8
+/home/git/22373058/start.S:29
+
+	jal     print_str
+800202f4:	0c00806a 	jal	800201a8 <print_str>
+800202f8:	00000000 	nop
+/home/git/22373058/start.S:32
+	/* use 'addiu  sp, sp, <x>' to restore stack pointer. */
+	/* Your code here. (3/6) */
+	addiu sp, sp, 8
+800202fc:	27bd0008 	addiu	sp,sp,8
+/home/git/22373058/start.S:34
+	/* Set the first four parameters. */
+	li      a0, 0
+80020300:	24040000 	li	a0,0
+/home/git/22373058/start.S:35
+	li      a1, 1
+80020304:	24050001 	li	a1,1
+/home/git/22373058/start.S:36
+	li      a2, 2
+80020308:	24060002 	li	a2,2
+/home/git/22373058/start.S:37
+	li      a3, 3
+8002030c:	24070003 	li	a3,3
+/home/git/22373058/start.S:41
+	/* use 'addiu  sp, sp, <x>' to push a proper-sized frame onto the stack for Nonleaf function 'hello'. */
+	/* Your code here. (4/6) */
+
+	addiu sp, sp, -24
+80020310:	27bdffe8 	addiu	sp,sp,-24
+/home/git/22373058/start.S:43
+
+	lw      t1, var	
+80020314:	3c098002 	lui	t1,0x8002
+80020318:	8d290380 	lw	t1,896(t1)
+/home/git/22373058/start.S:44
+	li      t2, 5
+8002031c:	240a0005 	li	t2,5
+/home/git/22373058/start.S:49
+	/* use 'sw  t1, <x>(sp)' to store t1 at the proper place of the stack */
+	/* so that t1 is 5th argument of function hello. */
+	/* Your code here. (5/6) */
+
+	sw t1, 16(sp)
+80020320:	afa90010 	sw	t1,16(sp)
+/home/git/22373058/start.S:55
+
+	/* use 'sw  t2, <x>(sp)' to store t2 at the proper place of the stack */
+	/* so that t2 is 6th argument of function hello. */
+	/* Your code here. (6/6) */
+
+	sw t2, 20(sp)
+80020324:	afaa0014 	sw	t2,20(sp)
+/home/git/22373058/start.S:58
+
+	/* use 'j' to call the function 'hello', we use 'j' instead of 'jal' because 'hello' is 'noreturn' */
+	j       hello
+80020328:	08008000 	j	80020000 <hello>
+8002032c:	00000000 	nop
