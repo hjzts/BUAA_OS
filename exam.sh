@@ -13,10 +13,10 @@ done
 gcc *.o -o ../hello
 cd ..
 
-./hello &2> err.txt
+./hello 2> err.txt
 
-
-mv err.txt ..
+cp err.txt ..
+#pwd
 cd ..
 chmod 655 err.txt
 
