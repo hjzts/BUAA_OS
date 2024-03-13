@@ -27,6 +27,7 @@ i=1
 while [ $i -le $# ]
 do
 	n$i=$${i}
+	i=$((i+1))
 done
 
 n3=$[$n1+$n2]
