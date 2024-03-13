@@ -41,7 +41,7 @@ elif [ ! -z "$CMD" ]; then
 	cat ps.out | grep $str
 elif [ ! -z $PID ]; then
     # Your code here. (3/3)
-    
+	:    
 else
     usage
     exit 1
