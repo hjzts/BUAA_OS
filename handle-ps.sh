@@ -34,10 +34,10 @@ fi
 # You can remove ":" after finishing.
 if $SORT; then
     # Your code here. (1/3)
-    :
+    sort -k4nr -k2n ps.out
 elif [ ! -z "$CMD" ]; then
     # Your code here. (2/3)
-    :
+   :
 elif [ ! -z $PID ]; then
     # Your code here. (3/3)
     :
