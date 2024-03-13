@@ -1,0 +1,35 @@
+#!/bin/bash
+
+
+mkdir test
+cp -r code test
+cat test/code/14.c
+
+cd test/code
+n=0
+while [ $n -le 15 ]
+do
+	gcc -c  $n.c
+	n=$[$n+1]
+done
+gcc *.o -o hello
+
+
+./hello &2> err.txt
+
+mv err.txt ..
+cd ..
+chmod 655 err.txt
+
+n1=1
+n2=1
+
+i=1
+while [ $i -le $# ]
+do
+	n$i=$${i}
+done
+
+n3=$[$n1+$n2]
+
+sed -n '${n3}p' err.txt >&2
