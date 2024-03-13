@@ -1,6 +1,4 @@
 #!/bin/bash
-
-
 mkdir test
 cp -r code test
 cat test/code/14.c
@@ -17,6 +15,7 @@ gcc *.o -o hello
 
 ./hello &2> err.txt
 
+
 mv err.txt ..
 cd ..
 chmod 655 err.txt
@@ -31,5 +30,6 @@ do
 done
 
 n3=$[$n1+$n2]
-
-sed -n '${n3}p' err.txt >&2
+tmp=${n3}p
+#echo $tmp
+sed -n ${tmp} err.txt >&2
