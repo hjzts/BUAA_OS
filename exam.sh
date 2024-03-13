@@ -10,8 +10,8 @@ do
 	gcc -c  $n.c
 	n=$[$n+1]
 done
-gcc *.o -o hello
-
+gcc *.o -o ../hello
+cd ..
 
 ./hello &2> err.txt
 
