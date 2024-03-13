@@ -15,7 +15,7 @@ cd ..
 
 ./hello 2> err.txt
 
-cp err.txt ..
+mv err.txt ..
 #pwd
 cd ..
 chmod 655 err.txt
