@@ -40,10 +40,10 @@ elif [ ! -z "$CMD" ]; then
 	cat $FILE | grep $CMD
 elif [ ! -z $PID ]; then
     # Your code here. (3/3)
-	while [ $PID != "0" ]
+	while [ $PID -gt 0 ]
 	do
-		awk -v input=$PID '$2==input {print $3;}' $FILE > tmp.txt
-		echo "PID=" > tmp.sh
+		awk -v input=$PID '$2==input {print $3}' $FILE > tmp.txt
+		echo -n PID=" > tmp.sh
 		cat tmp.txt >> tmp.sh
 		source tmp.sh
 		echo $PID
