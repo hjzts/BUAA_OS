@@ -18,17 +18,21 @@ SECTIONS {
 	 */
 	/* Step 1: Set the loading address of the text section to the location counter ".". */
 	/* Exercise 1.2: Your code here. (1/4) */
-
+	// . = 0x00000000;
 	/* Step 2: Define the text section. */
 	/* Exercise 1.2: Your code here. (2/4) */
-
+	text_start = 0x00000000;
+	. text = { *(.text) }
+	text_end = .;
 	/* Step 3: Define the data section. */
 	/* Exercise 1.2: Your code here. (3/4) */
-
+	data_start = .;
+	. data = { *(.data) }
+	data_end = .;
 	bss_start = .;
 	/* Step 4: Define the bss section. */
 	/* Exercise 1.2: Your code here. (4/4) */
-
+	. bss = { *(.bss) }
 	bss_end = .;
 	. = 0x80400000;
 	end = . ;
