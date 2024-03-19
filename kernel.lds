@@ -21,7 +21,7 @@ SECTIONS {
 	 . = 0x00000000;
 	/* Step 2: Define the text section. */
 	/* Exercise 1.2: Your code here. (2/4) */
-	text_start = 0x80000000;
+	text_start = 0x80010000;
 	. text : { *(.text) }
 	text_end = .;
 	/* Step 3: Define the data section. */
