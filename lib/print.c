@@ -5,6 +5,72 @@ static void print_char(fmt_callback_t, void*, char, int, int);
 static void print_str(fmt_callback_t, void*, const char*, int, int);
 static void print_num(fmt_callback_t, void*, unsigned long, int, int, int, int, char, int);
 
+int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
+	char *ip;
+	char *cp;
+	char ch;
+	int  num,  ret = 0;
+	int len = 0;
+	while(*fmt) {
+		if (*fmt == '%') {
+			ret++;
+			fmt++; // 跳过'%'
+			do {
+				in (data, &ch, 1);
+			} while(ch ==' ' || ch == '\t' || ch == '\n'); // jump white
+			// now ch is the first valid symbol
+			switch(*fmt) {
+			case 'd': // ten
+				num = va_arg(ap, int);
+				
+				len = 0;
+				int tmp_num = num;
+				while(tmp_num) {
+					len++;
+					tmp_num /= 10;
+				}
+				inputk(data, &num, len);
+				break;
+			case 'x': // sixteen
+				ip = (char*)(va_arg(ap, char*));
+				num = 0;
+				while(*ip) {
+					if(*ip >= '0' && *ip <= '9') {
+						num = 16 * num + *ip - '0';
+					} else if (*ip >= 'a' && *ip <= 'f') {
+						num = 16 * num + *ip - 'a';
+					}
+				}
+				len = 0;
+				int t_num = num;
+				while (t_num) {
+					len++;
+					t_num /= 10;
+				}
+				inputk(data,&num, len);
+				break;
+			case 'c':
+				ch = (char)va_arg(ap,int);
+				inputk(data, &ch, 1);
+				break;
+			case 's':
+				cp = (char*) va_arg(ap, char*);
+				len = 0;
+				char * tmp_s = cp;
+				while(*tmp_s) {
+					tmp_s ++;
+					len++;
+				}
+				inputk(data, cp, len);
+				break;
+			}
+			fmt++;
+		}
+	}
+	return ret;
+}
+
+
 void vprintfmt(fmt_callback_t out, void* data, const char* fmt, va_list ap)
 {
     char c;
