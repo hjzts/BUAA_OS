@@ -3,6 +3,7 @@
 
 #include <machine.h>
 #include <stdarg.h>
+int scanf(const char *fmt, ...);
 
 void printk(const char *fmt, ...);
 

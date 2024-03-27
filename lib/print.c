@@ -6,10 +6,10 @@ static void print_str(fmt_callback_t, void*, const char*, int, int);
 static void print_num(fmt_callback_t, void*, unsigned long, int, int, int, int, char, int);
 
 int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
-	char *ip;
+	int  *ip;
 	char *cp;
 	char ch;
-	int  num,  ret = 0;
+	int base,  num, neg,  ret = 0;
 	int len = 0;
 	while(*fmt) {
 		if (*fmt == '%') {
@@ -21,15 +21,29 @@ int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
 			// now ch is the first valid symbol
 			switch(*fmt) {
 			case 'd': // ten
-				num = va_arg(ap, int);
-				
-				len = 0;
+				base = 10;
+				if(ch == '-') neg  = 1;
+				printk("{%c }" ,ch);
+				while(ch >= '0' && ch <= '9') {	
+					num = num * base + (int)(ch - '0');
+					in(data, &ch, 1);
+					printk("{%d }", num);
+					len ++;
+				}
+				printk("%d\n", num);
+				if (num < 0){
+					neg = 1;
+					num = - num;
+				}
+				printk("%d\n",num);
 				int tmp_num = num;
 				while(tmp_num) {
-					len++;
+				//	len++;
 					tmp_num /= 10;
 				}
-				inputk(data, &num, len);
+				printk("{%d }",len);
+
+				inputk(ap, num, len);
 				break;
 			case 'x': // sixteen
 				ip = (char*)(va_arg(ap, char*));
@@ -50,8 +64,8 @@ int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
 				inputk(data,&num, len);
 				break;
 			case 'c':
-				ch = (char)va_arg(ap,int);
-				inputk(data, &ch, 1);
+				printk("{%c }", ch);
+				inputk(data, &ch,1);
 				break;
 			case 's':
 				cp = (char*) va_arg(ap, char*);
