@@ -1,5 +1,4 @@
 #include <print.h>
-
 /* forward declaration */
 static void print_char(fmt_callback_t, void*, char, int, int);
 static void print_str(fmt_callback_t, void*, const char*, int, int);
@@ -43,7 +42,7 @@ int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
 				}
 				printk("{%d }",len);
 
-				inputk(ap, num, len);
+				inputk(ap, num, len*4);
 				break;
 			case 'x': // sixteen
 				ip = (char*)(va_arg(ap, char*));
@@ -162,7 +161,7 @@ void vprintfmt(fmt_callback_t out, void* data, const char* fmt, va_list ap)
             } else {
                 num = va_arg(ap, int);
             }
-
+	    print_char(out,data, b,1,0);
             /*
              * Refer to other parts (case 'b', case 'o', etc.) and func 'print_num' to
              * complete this part. Think the differences between case 'd' and the
