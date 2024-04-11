@@ -11,7 +11,6 @@ static u_long memsize; /* Maximum physical address */
 u_long npage; /* Amount of memory(in pages) */
 
 Pde* cur_pgdir;
-c
 struct Page* pages;
 static u_long freemem;
 
