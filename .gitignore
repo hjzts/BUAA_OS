@@ -1,4 +1,5 @@
 .vscode
+.vscode-server
 .idea
 .gdbrc
 *.b

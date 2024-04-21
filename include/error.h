@@ -48,11 +48,11 @@
  * A quick wrapper around function calls to propagate errors.
  * Use this with caution, as it leaks resources we've acquired so far.
  */
-#define try(expr)                                                                                  \
-	do {                                                                                       \
-		int _r = (expr);                                                                   \
-		if (_r != 0)                                                                       \
-			return _r;                                                                 \
-	} while (0)
+#define try(expr)        \
+    do {                 \
+        int _r = (expr); \
+        if (_r != 0)     \
+            return _r;   \
+    } while (0)
 
 #endif // _ERROR_H_
