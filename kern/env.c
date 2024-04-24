@@ -353,7 +353,7 @@ static void load_icode(struct Env* e, const void* binary, size_t size)
     debugk("%d", ehdr->e_phnum);
     for (int _ph_idx = 0; _ph_idx < (ehdr)->e_phnum; ++_ph_idx, (ph_off) += (ehdr)->e_phentsize) {
         Elf32_Phdr* ph = (Elf32_Phdr*)(binary + ph_off); // program header
-        debugk("%x", ph);
+        debugk("the program header's address is %x", ph);
         if (ph->p_type == PT_LOAD) { // Segment type
             // 'elf_load_seg' is defined in lib/elfloader.c
             // 'load_icode_mapper' defines the way in which a page in this segment
