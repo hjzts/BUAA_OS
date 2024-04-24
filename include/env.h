@@ -49,7 +49,8 @@ struct Env {
     // Lab 6 scheduler counts
     u_int env_runs; // number of times we've been env_run'ed
 
-    u_int env_scheds;   // number of be schduled
+    u_int env_scheds;   // number of be scheduled
+    u_int env_clocks;
 };
 
 LIST_HEAD(Env_list, Env);

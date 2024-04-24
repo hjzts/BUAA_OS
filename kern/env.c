@@ -22,19 +22,19 @@ static Pde* base_pgdir;
 
 static uint32_t asid_bitmap[NASID / 32] = { 0 };
 
+u_int my_clocks = 0;
 void env_stat(struct Env *e, u_int *pri, u_int *scheds, u_int *runs, u_int *clocks) {
     *pri = e->env_pri;
     *scheds = e->env_scheds;
     *runs = e->env_runs;
     struct Trapframe *tf =  ((struct Trapframe*)KSTACKTOP - 1);
 
-    // *clocks = tf->cp0_count;
     if (*runs == 0) {
-        *clocks = tf->cp0_count;
-    } else  if (*runs & 1){
-        *clocks = 506842;
+        *clocks = 0;
+        my_clocks = 0;
     } else {
-        *clocks = 507794;
+        my_clocks += tf->cp0_count;
+        *clocks = my_clocks;
     }
 }
 
