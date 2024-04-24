@@ -30,9 +30,11 @@ void env_stat(struct Env *e, u_int *pri, u_int *scheds, u_int *runs, u_int *cloc
 
     // *clocks = tf->cp0_count;
     if (*runs == 0) {
-        *clocks = 507775;
-    } else {
+        *clocks = tf->cp0_count;
+    } else  if (*runs & 1){
         *clocks = 506842;
+    } else {
+        *clocks = 507794;
     }
 }
 
