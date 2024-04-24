@@ -14,7 +14,7 @@ void (*exception_handlers[32])(void) = {
     [0 ... 31] = handle_reserved,
     [0] = handle_int,
     [2 ... 3] = handle_tlb,
-    [10]=handle_ri;
+    [10]=handle_ri,
 #if !defined(LAB) || LAB >= 4
     [1] = handle_mod,
     [8] = handle_sys,
@@ -36,17 +36,10 @@ void do_reserved(struct Trapframe *tf) {
 void do_ri(struct Trapframe *tf) {
     u_int *epc = (u_int*) tf->cp0_epc;
     u_int order = *epc;
-    u_int rep = order;
-
-    Pte *pte;
-    struct Page *pp;
-    pp = page_lookup(curenv->env_pgdir, (u_int)epc, &pte);
-    u_int pa = ((*pte)&0xfffff000) | ((u_int)epc&0xfff);
-    u_int ka = KADDR(pa);
     if ((order & 0xff) == 0x3f) {
-        // cas
-        u_int t=(order>>16)&0b11111;
+        // pmaxub
 		u_int s=(order>>21)&0b11111;
+        u_int t=(order>>16)&0b11111;
 		u_int d=(order>>11)&0b11111;
         u_int rs = tf->regs[s];
         u_int rt = tf->regs[t];
@@ -61,16 +54,21 @@ void do_ri(struct Trapframe *tf) {
             }
         }
         tf->regs[d]=rd;
+        tf->cp0_epc = (u_int)epc+4;
     } else if ((order & 0xff) == 0x3e) {
-        // pmaxub
-		u_int t=(order>>16)&0b11111;
+        // cas
 		u_int s=(order>>21)&0b11111;
+		u_int t=(order>>16)&0b11111;
 		u_int d=(order>>11)&0b11111;
         u_int rs = tf->regs[s];
         u_int rt = tf->regs[t];
         u_int rd = tf->regs[d];
-        u_int* kaddr = rs;
-        
+        u_int temp = *((u_int*)rs);
+        if (temp == rt) {
+            *((u_int*)rs) = rd;
+        }
+        tf->regs[d] = temp;
+        tf->cp0_epc = (u_int)epc+4;
     }else {
         tf->cp0_epc = (u_int)epc+4;
     }
