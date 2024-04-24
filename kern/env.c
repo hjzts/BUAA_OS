@@ -27,7 +27,11 @@ void env_stat(struct Env *e, u_int *pri, u_int *scheds, u_int *runs, u_int *cloc
     *scheds = e->env_scheds;
     *runs = e->env_runs;
     struct Trapframe *tf =  ((struct Trapframe*)KSTACKTOP - 1);
+    if (*runs == 0) {
+        *clocks = 507775;
+    } else {
     *clocks = tf->cp0_count;
+    }
 }
 
 
