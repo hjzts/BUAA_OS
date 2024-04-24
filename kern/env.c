@@ -22,6 +22,15 @@ static Pde* base_pgdir;
 
 static uint32_t asid_bitmap[NASID / 32] = { 0 };
 
+void env_stat(struct Env *e, u_int *pri, u_int *scheds, u_int *runs, u_int *clocks) {
+    *pri = e->env_pri;
+    *scheds = e->env_scheds;
+    *runs = e->env_runs;
+    struct Trapframe *tf =  ((struct Trapframe*)KSTACKTOP - 1);
+    *clocks = tf->cp0_count;
+}
+
+
 /* Overview:
  *  Allocate an unused ASID.
  *
@@ -393,6 +402,8 @@ struct Env* env_create(const void* binary, size_t size, int priority)
     /* Exercise 3.7: Your code here. (2/3) */
     e->env_pri = priority;
     e->env_status = ENV_RUNNABLE;
+    e->env_runs = 0;
+    e->env_scheds = 0;
     /* Step 3: Use 'load_icode' to load the image from 'binary', and insert 'e' into
      * 'env_sched_list' using 'TAILQ_INSERT_HEAD'. */
     /* Exercise 3.7: Your code here. (3/3) */
