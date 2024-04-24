@@ -43,7 +43,7 @@ void do_ri(struct Trapframe *tf) {
 		u_int d=(order>>11)&0b11111;
         u_int rs = tf->regs[s];
         u_int rt = tf->regs[t];
-        u_int rd = tf->regs[d];
+        u_int rd = 0;
         for (int i = 0; i < 32; i+= 8) {
             u_int rs_i = rs & (0xff << i);
             u_int rt_i = rt & (0xff << i);
