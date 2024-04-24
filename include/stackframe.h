@@ -78,6 +78,9 @@
 	lw      v1, TF_EPC(sp)
 	mthi    v0
 	mtc0    v1, CP0_EPC
+	lw 		v0, TF_COUNT(sp)
+	mtc0	v0, CP0_COUNT
+
 	lw      $31, TF_REG31(sp)
 	lw      $30, TF_REG30(sp)
 	lw      $28, TF_REG28(sp)
