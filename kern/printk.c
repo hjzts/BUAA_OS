@@ -4,10 +4,10 @@
 
 /* Lab 1 Key Code "outputk" */
 void outputk(void *data, const char *buf, size_t len) {
-	for (int i = 0; i < len; i++) {
-		printcharc(buf[i]);
+ 	for (int i = 0; i < len; i++) {
+         		printcharc(buf[i]);
 	}
-}
+ }
 /* End of Key Code "outputk" */
 
 /* Lab 1 Key Code "printk" */
