@@ -22,7 +22,7 @@ static void debug_flush(struct debug_ctx* ctx)
 
 static void debug_output(void* data, const char* s, size_t l)
 {
-    debugk("debug_output is called");
+    // debugk("debug_output is called");
     struct debug_ctx* ctx = (struct debug_ctx*)data;
 
     while (ctx->pos + l > BUF_LEN) {

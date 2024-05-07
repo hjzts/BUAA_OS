@@ -144,7 +144,7 @@ int envid2env(u_int envid, struct Env** penv, int checkperm)
      */
     /* Exercise 4.3: Your code here. (2/2) */
     if (checkperm) {
-        if ((e != curenv) && (e->env_parent_id != curenv->env_id)) {
+        if ((e->env_id != curenv->env_id) && (e->env_parent_id != curenv->env_id)) {
             *penv = NULL;
             // 学长比我多的，我感觉其实不太必要（x
             // 一方面是可以看envid2env_check里面的
@@ -260,7 +260,7 @@ int env_alloc(struct Env** new, u_int parent_id)
 {
     int r;
     struct Env* e;
-
+    debugk("env_alloc function is called");
     /* Step 1: Get a free Env from 'env_free_list' */
     /* Exercise 3.4: Your code here. (1/4) */
     e = LIST_FIRST(&env_free_list);
@@ -282,8 +282,10 @@ int env_alloc(struct Env** new, u_int parent_id)
     e->env_runs = 0; // for lab6
     /* Exercise 3.4: Your code here. (3/4) */
     e->env_id = mkenvid(e);
+    debugk("env_id is made in function env_alloc");
     try(asid_alloc(&(e->env_asid)));
     e->env_parent_id = parent_id;
+    debugk("env_parent_id is make in fucntion env_alloc");
     /* Step 4: Initialize the sp and 'cp0_status' in 'e->env_tf'.
      *   Set the EXL bit to ensure that the processor remains in kernel mode during context
      * recovery. Additionally, set UM to 1 so that when ERET unsets EXL, the processor

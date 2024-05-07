@@ -1,7 +1,7 @@
 #include <debugk.h>
 #include <elf.h>
 #include <pmap.h>
-
+#include <printk.h>
 const Elf32_Ehdr* elf_from(const void* binary, size_t size)
 {
     const Elf32_Ehdr* ehdr = (const Elf32_Ehdr*)binary;
@@ -24,7 +24,7 @@ const Elf32_Ehdr* elf_from(const void* binary, size_t size)
  */
 int elf_load_seg(Elf32_Phdr* ph, const void* bin, elf_mapper_t map_page, void* data)
 {
-    debugk("elf_load_seg function is called");
+    // debugk("elf_load_seg function is called");
     u_long va = ph->p_vaddr;
     size_t bin_size = ph->p_filesz;
     size_t sgsize = ph->p_memsz;

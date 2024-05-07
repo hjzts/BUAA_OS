@@ -1,3 +1,4 @@
+#include <debugk.h>
 #include <env.h>
 #include <lib.h>
 #include <mmu.h>
@@ -22,26 +23,35 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe* tf)
     /* Hint: Use 'vpt' and 'VPN' to find the page table entry. If the 'perm' doesn't have
      * 'PTE_COW', launch a 'user_panic'. */
     /* Exercise 4.13: Your code here. (1/6) */
+    debugk_user("static function cow_entry is called");
+
     perm = vpt[VPN(va)];
-    if (!(perm | PTE_COW))
-        user_panic("");
+    if (!(perm & PTE_COW))
+        user_panic("User page falut face a not COW page");
+
     /* Step 2: Remove 'PTE_COW' from the 'perm', and add 'PTE_D' to it. */
     /* Exercise 4.13: Your code here. (2/6) */
     perm = (perm & ~PTE_COW) | PTE_D;
+    debugk_user("perm has remove PTE_COE and add PTE_D in function cow_enty");
     /* Step 3: Allocate a new page at 'UCOW'. */
     /* Exercise 4.13: Your code here. (3/6) */
     try(syscall_mem_alloc(0, (void*)UCOW, perm));
+    // try(syscall_mem_alloc(0, (void*)UCOW, PTE_V | PTE_D));
+
     /* Step 4: Copy the content of the faulting page at 'va' to 'UCOW'. */
     /* Hint: 'va' may not be aligned to a page! */
     /* Exercise 4.13: Your code here. (4/6) */
     va = ROUNDDOWN(va, PAGE_SIZE);
     memcpy((void*)UCOW, (void*)va, PAGE_SIZE);
+
     // Step 5: Map the page at 'UCOW' to 'va' with the new 'perm'.
     /* Exercise 4.13: Your code here. (5/6) */
     syscall_mem_map(0, (void*)UCOW, 0, (void*)va, perm);
+
     // Step 6: Unmap the page at 'UCOW'.
     /* Exercise 4.13: Your code here. (6/6) */
     syscall_mem_unmap(0, (void*)UCOW);
+
     // Step 7: Return to the faulting routine.
     int r = syscall_set_trapframe(0, tf);
     user_panic("syscall_set_trapframe returned %d", r);
@@ -89,14 +99,14 @@ static void duppage(u_int envid, u_int vpn)
     /* Exercise 4.10: Your code here. (2/2) */
     // 这些页面应该是用户空间，也就是父进程的页面
     // 在用户空间，他的id就是0
-    if ((perm | PTE_D) && !(perm | PTE_LIBRARY) && !(perm | PTE_COW)) {
+    if ((perm & PTE_D) && !(perm & PTE_LIBRARY) && !(perm & PTE_COW)) {
         // 可写入	不是共享页面	不是写时复制页面
         perm = (perm & ~PTE_D) | PTE_COW; // 	加入写时复制保护
-        syscall_mem_map(0, addr, envid, addr, perm); // 	先复制给子进程
-        syscall_mem_map(0, addr, 0, addr, perm); // 	然后复制给父进程
+        syscall_mem_map(0, (void*)addr, envid, (void*)addr, perm); // 	先复制给子进程
+        syscall_mem_map(0, (void*)addr, 0, (void*)addr, perm); // 	然后复制给父进程
     } else {
         // 不可写页面	共享页面
-        syscall_mem_map(0, addr, envid, addr, perm); //	其他的该是什么权限就是什么权限
+        syscall_mem_map(0, (void*)addr, envid, (void*)addr, perm); //	其他的该是什么权限就是什么权限
     }
 }
 
@@ -134,8 +144,9 @@ int fork(void)
     // Hint: You should use 'duppage'.
     /* Exercise 4.15: Your code here. (1/2) */
     for (int i = 0; i < USTACKTOP; i += PAGE_SIZE) {
-        Pde* pde = vpd[i >> PDSHIFT];
-        Pte* pte = vpt[i >> PGSHIFT];
+        Pde* pde = &vpd[i >> PDSHIFT];
+        Pte* pte = &vpt[i >> PGSHIFT];
+
         if (((*pde) & PTE_V) && ((*pte) & PTE_V)) {
             duppage(child, VPN(i));
         }
