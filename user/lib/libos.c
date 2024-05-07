@@ -22,6 +22,6 @@ void libmain(int argc, char **argv) {
 	// call user main routine
 	main(argc, argv);
 
-	// exit gracefully
+	// exit gracefully 优雅？？？
 	exit();
 }

@@ -20,8 +20,8 @@
 struct Env {
     struct Trapframe env_tf; // saved context (registers) before switching
     // 在发生进程调度或者陷入内核时，会将当时的进程上下文环境保存在这里
-    LIST_ENTRY(Env)
-    env_link; // intrusive entry in 'env_free_list'
+    LIST_ENTRY(Env) env_link; 
+                    // intrusive entry in 'env_free_list'
     u_int env_id; // unique environment identifier
     u_int env_asid; // ASID of this env
     u_int env_parent_id; // env_id of this env's parent
@@ -31,8 +31,8 @@ struct Env {
     // ENV_RUNNABLE :进程处于执行状态或者就绪状态
     Pde* env_pgdir; // page directory
                     // 进程页目录的内核虚拟地址
-    TAILQ_ENTRY(Env)
-    env_sched_link; // intrusive entry in 'env_sched_list'
+    TAILQ_ENTRY(Env) env_sched_link; 
+                    // intrusive entry in 'env_sched_list'
                     // 用来构造调度队列
     u_int env_pri; // schedule priority
 

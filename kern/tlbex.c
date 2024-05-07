@@ -83,6 +83,7 @@ void _do_tlb_refill(u_long* pentrylo, u_int va, u_int asid)
  */
 void do_tlb_mod(struct Trapframe* tf)
 {
+    debugk("do_tlb_mod is called");
     struct Trapframe tmp_tf = *tf;
 
     if (tf->regs[29] < USTACKTOP || tf->regs[29] >= UXSTACKTOP) {
@@ -97,7 +98,7 @@ void do_tlb_mod(struct Trapframe* tf)
         tf->regs[29] -= sizeof(tf->regs[4]);
         // Hint: Set 'cp0_epc' in the context 'tf' to 'curenv->env_user_tlb_mod_entry'.
         /* Exercise 4.11: Your code here. */
-
+        tf->cp0_epc = curenv->env_user_tlb_mod_entry;
     } else {
         panic("TLB Mod but no user handler registered");
     }

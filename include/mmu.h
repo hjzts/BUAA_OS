@@ -97,7 +97,7 @@
  o      UPAGES   -----> +----------------------------+------------0x7f80 0000    |
  o                      |           envs             |     PDMAP                 |
  o  UTOP,UENVS   -----> +----------------------------+------------0x7f40 0000    |
- o  UXSTACKTOP -/       |     user exception stack   |     PTMAP                 |
+ o  UXSTACKTOP -/       |     user exce ption stack   |     PTMAP                 |
  o                      +----------------------------+------------0x7f3f f000    |
  o                      |                            |     PTMAP                 |
  o      USTACKTOP ----> +----------------------------+------------0x7f3f e000    |

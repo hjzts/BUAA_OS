@@ -1,6 +1,6 @@
 #include <bitops.h>
 #include <env.h>
-#include <error.h>
+#include <error_my.h>
 #include <malta.h>
 #include <mmu.h>
 #include <pmap.h>
@@ -162,6 +162,7 @@ void page_free(struct Page* pp)
 }
 
 /* Overview:
+ *   通过给定的一个页目录pgdir的入口，找到这个虚拟地址`va`对应的页表入口&pte
  *   Given 'pgdir', a pointer to a page directory, 'pgdir_walk' returns a pointer to
  *   the page table entry for virtual address 'va'.
  *

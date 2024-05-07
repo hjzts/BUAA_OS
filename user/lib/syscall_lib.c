@@ -2,6 +2,7 @@
 #include <lib.h>
 #include <mmu.h>
 #include <syscall.h>
+#include <syscall_my.h>
 #include <trap.h>
 
 void syscall_putchar(int ch) {

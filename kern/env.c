@@ -2,6 +2,7 @@
 #include <debugk.h>
 #include <elf.h>
 #include <env.h>
+#include <error_my.h>
 #include <mmu.h>
 #include <pmap.h>
 #include <printk.h>
@@ -124,6 +125,12 @@ int envid2env(u_int envid, struct Env** penv, int checkperm)
      *   You may want to use 'ENVX'.
      */
     /* Exercise 4.3: Your code here. (1/2) */
+    if (envid == 0) {
+        *penv = curenv;
+        return 0;
+    }
+    e = &envs[ENVX(envid)];
+    // e = envs + ENVS(envid);
 
     if (e->env_status == ENV_FREE || e->env_id != envid) {
         return -E_BAD_ENV;
@@ -131,12 +138,20 @@ int envid2env(u_int envid, struct Env** penv, int checkperm)
 
     /* Step 2: Check when 'checkperm' is non-zero. */
     /* Hints:
-     *   Check whether the calling env has sufficient permissions to manipulate the
-     *   specified env, i.e. 'e' is either 'curenv' or its immediate child.
+     *   Check whether the calling env has sufficient permissions to manipulate操作 the
+     *   specified env, i.e. 'e' is either 'curenv' or its immediate child直系子女.
      *   If violated, return '-E_BAD_ENV'.
      */
     /* Exercise 4.3: Your code here. (2/2) */
-
+    if (checkperm) {
+        if ((e != curenv) && (e->env_parent_id != curenv->env_id)) {
+            *penv = NULL;
+            // 学长比我多的，我感觉其实不太必要（x
+            // 一方面是可以看envid2env_check里面的
+            // 另一方面，我觉得调用前先判断返回值是否合法 才会去使用得到的值
+            return -E_BAD_ENV;
+        }
+    }
     /* Step 3: Assign 'e' to '*penv'. */
     *penv = e;
     return 0;

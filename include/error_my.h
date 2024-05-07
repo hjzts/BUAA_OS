@@ -10,7 +10,7 @@
 #define E_BAD_ENV 2
 
 // Invalid parameter
-#define E_INVAL 3
+#define E_INVAL 3 // invalid
 
 // Request failed due to memory shortage
 #define E_NO_MEM 4
