@@ -30,6 +30,7 @@ int syscall_set_tlb_mod_entry(u_int envid, void (*func)(struct Trapframe *)) {
 }
 
 int syscall_mem_alloc(u_int envid, void *va, u_int perm) {
+	debugk_user("function syscall_mem_alloc is called");
 	return msyscall(SYS_mem_alloc, envid, va, perm);
 }
 

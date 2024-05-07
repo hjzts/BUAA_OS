@@ -37,7 +37,7 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe* tf)
     /* Exercise 4.13: Your code here. (3/6) */
     try(syscall_mem_alloc(0, (void*)UCOW, perm));
     // try(syscall_mem_alloc(0, (void*)UCOW, PTE_V | PTE_D));
-
+    
     /* Step 4: Copy the content of the faulting page at 'va' to 'UCOW'. */
     /* Hint: 'va' may not be aligned to a page! */
     /* Exercise 4.13: Your code here. (4/6) */

@@ -1,3 +1,4 @@
+#include <syscall_my.h> 
 #ifndef LIB_H
 #define LIB_H
 #include <args.h>
