@@ -2,7 +2,7 @@
 #define _DBGK_H_
 #include <printk.h>
 
-#define DEBUGK // 可以注释，那就不会打印
+// #define DEBUGK // 可以注释，那就不会打印
 
 #ifdef DEBUGK
 #define debugk(fmt, ...)                      \
@@ -21,7 +21,7 @@
         debugf("\n");                         \
     } while (0)
 #else
-#define debugk(...)
+#define debugk_user(...)
 #endif
 
 #endif // !_DBGK_H_

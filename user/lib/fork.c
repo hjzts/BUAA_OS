@@ -25,7 +25,8 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe* tf)
     /* Exercise 4.13: Your code here. (1/6) */
     debugk_user("static function cow_entry is called");
 
-    perm = vpt[VPN(va)];
+    // perm = vpt[VPN(va)];  啊？这个是错的，下面就是对的？
+    perm = vpt[VPN(va)] & 0xfff;
     if (!(perm & PTE_COW))
         user_panic("User page falut face a not COW page");
 
@@ -37,7 +38,7 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe* tf)
     /* Exercise 4.13: Your code here. (3/6) */
     try(syscall_mem_alloc(0, (void*)UCOW, perm));
     // try(syscall_mem_alloc(0, (void*)UCOW, PTE_V | PTE_D));
-    
+
     /* Step 4: Copy the content of the faulting page at 'va' to 'UCOW'. */
     /* Hint: 'va' may not be aligned to a page! */
     /* Exercise 4.13: Your code here. (4/6) */
