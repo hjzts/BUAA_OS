@@ -15,7 +15,12 @@ int sem_wait(int sem_id) {
 	// Lab 4-1-Exam: Your code here. (1/9)
 	// Implement process blocking
 	r = syscall_sem_wait(sem_id);
-	// if (r = 0) syscall_yield();
+	if (r != 0) {
+		return r;
+	}
+	else {
+		syscall_yield();
+	}
 	return r;
 }
 
