@@ -14,6 +14,7 @@ void syscall_sem_open(int sem_id, int n) {
 
 int syscall_sem_wait(int sem_id) {
 	// Lab 4-1-Exam: Your code here. (3/9)
+	debugk_user("syscall_sem_wait is called");
 	return msyscall(SYS_sem_wait,sem_id);
 
 }

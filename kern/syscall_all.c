@@ -15,6 +15,9 @@ int sems_valid[15] = {0};
 
 void sys_sem_open(int sem_id, int n) {
 	// Lab 4-1-Exam: Your code here. (6/9)
+    if (sems_valid[sem_id]) {
+        return;
+    }
     sems[sem_id] = n;
     sems_valid[sem_id] = 1;
 }
@@ -27,10 +30,8 @@ int sys_sem_wait(int sem_id) {
     if (sems[sem_id] > 0) {
         sems[sem_id] -= 1;
         return 0;
-    } else {
-        curenv->env_status = ENV_NOT_RUNNABLE;
-        TAILQ_REMOVE(&env_sched_list, curenv, env_sched_link);
-        return 0;
+    }else {
+        return 1;
     }
 }
 

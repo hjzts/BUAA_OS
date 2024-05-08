@@ -21,9 +21,23 @@ int sem_wait(int sem_id) {
 	// else {
 	// 	syscall_yield();
 	// }
-	// while((r = syscall_sem_wait(sem_id)) == -E_SEM_NOT_OPEN) {
-	// 	syscall_yield();
+	// int flag = 0;
+	// for (int i = 0; i < 15; i++ ) {
+	// 	r = syscall_sem_wait(i);
+	// 	if (r == 0) {
+	// 		flag = 1;
+	// 		break;
+	// 	}
 	// }
+	if (r == -E_SEM_NOT_OPEN) {
+		return r;
+	}
+	if (r == 0) {
+		return r;
+	}
+	while((r = syscall_sem_wait(sem_id)) == 1) {
+		syscall_yield();
+	}
 	return r;
 }
 
