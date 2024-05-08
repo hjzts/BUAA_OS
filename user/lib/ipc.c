@@ -3,6 +3,7 @@
 #include <env.h>
 #include <lib.h>
 #include <mmu.h>
+#include <error_my.h>
 
 // Send val to whom.  This function keeps trying until
 // it succeeds.  It should panic() on any error other than

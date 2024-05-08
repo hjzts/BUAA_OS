@@ -34,6 +34,7 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe* tf)
     /* Exercise 4.13: Your code here. (2/6) */
     perm = (perm & ~PTE_COW) | PTE_D;
     debugk_user("perm has remove PTE_COE and add PTE_D in function cow_enty");
+    
     /* Step 3: Allocate a new page at 'UCOW'. */
     /* Exercise 4.13: Your code here. (3/6) */
     try(syscall_mem_alloc(0, (void*)UCOW, perm));
