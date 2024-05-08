@@ -28,6 +28,8 @@ int sys_sem_wait(int sem_id) {
         sems[sem_id] -= 1;
         return 0;
     } else {
+        curenv->env_status = ENV_NOT_RUNNABLE;
+        TAILQ_REMOVE(&env_sched_list, curenv, env_sched_link);
         return 0;
     }
 }
