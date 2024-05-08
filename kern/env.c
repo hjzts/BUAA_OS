@@ -296,6 +296,7 @@ int env_alloc(struct Env** new, u_int parent_id)
     /* Step 5: Remove the new Env from env_free_list. */
     /* Exercise 3.4: Your code here. (4/4) */
     LIST_REMOVE(e, env_link);
+    TAILQ_INIT(&(e->env_msg_list));
     *new = e;
     return 0;
 }

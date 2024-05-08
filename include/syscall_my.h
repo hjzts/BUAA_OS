@@ -4,6 +4,9 @@
 #ifndef __ASSEMBLER__
 
 enum {
+	SYS_msg_send,
+	SYS_msg_recv,
+	SYS_msg_status,
 	SYS_putchar,
 	SYS_print_cons,
 	SYS_getenvid,

@@ -139,3 +139,10 @@ int sync(void);
 #define O_MKDIR 0x0800 /* create directory, not regular file */
 
 #endif
+int syscall_msg_send(u_int envid, u_int value, const void *srcva, u_int perm);
+int syscall_msg_recv(void *dstva);
+int syscall_msg_status(u_int msgid);
+
+int msg_send(u_int whom, u_int val, const void *srcva, u_int perm);
+int msg_recv(u_int *whom, u_int *value, void *dstva, u_int *perm);
+int msg_status(u_int msgid);
