@@ -4,6 +4,10 @@
 #ifndef __ASSEMBLER__
 
 enum {
+	SYS_sem_open,
+	SYS_sem_wait,
+	SYS_sem_post,
+	SYS_sem_kill,
 	SYS_putchar,
 	SYS_print_cons,
 	SYS_getenvid,

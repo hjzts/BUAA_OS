@@ -14,6 +14,18 @@
 #define envs ((const volatile struct Env *)UENVS)
 #define pages ((const volatile struct Page *)UPAGES)
 
+
+void sem_open(int sem_id, int n);
+int sem_wait(int sem_id);
+int sem_post(int sem_id);
+int sem_kill(int sem_id);
+
+void syscall_sem_open(int sem_id, int n);
+int syscall_sem_wait(int sem_id);
+int syscall_sem_post(int sem_id);
+int syscall_sem_kill(int sem_id);
+
+
 // libos
 void exit(void) __attribute__((noreturn));
 

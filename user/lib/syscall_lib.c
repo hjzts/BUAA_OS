@@ -5,6 +5,32 @@
 #include <syscall_my.h>
 #include <trap.h>
 
+
+
+void syscall_sem_open(int sem_id, int n) {
+	// Lab 4-1-Exam: Your code here. (2/9)
+	msyscall(SYS_sem_open,sem_id, n);
+}
+
+int syscall_sem_wait(int sem_id) {
+	// Lab 4-1-Exam: Your code here. (3/9)
+	return msyscall(SYS_sem_wait,sem_id);
+
+}
+
+int syscall_sem_post(int sem_id) {
+	// Lab 4-1-Exam: Your code here. (4/9)
+	return msyscall(SYS_sem_post,sem_id);
+
+}
+
+int syscall_sem_kill(int sem_id) {
+	// Lab 4-1-Exam: Your code here. (5/9)
+	return msyscall(SYS_sem_kill,sem_id);
+}
+
+
+
 void syscall_putchar(int ch) {
 	msyscall(SYS_putchar, ch);
 }
