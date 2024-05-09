@@ -2,98 +2,15 @@
 #include <error_my.h>
 #include <io.h>
 #include <mmu.h>
+#include <msg.h>
 #include <pmap.h>
 #include <printk.h>
 #include <sched.h>
 #include <syscall.h>
 #include <syscall_my.h>
-#include <msg.h>
-#include <msg_my.h>
-#include <env.h>
 
 extern struct Env* curenv;
 
-
-int sys_msg_send(u_int envid, u_int value, u_int srcva, u_int perm) {
-	struct Env *e;
-	struct Page *p;
-	struct Msg *m;
-
-	if (srcva != 0 && (srcva < UTEMP || srcva >= UTOP)) {
-		return -E_INVAL;
-	}
-	try(envid2env(envid, &e, 0));
-	if (TAILQ_EMPTY(&msg_free_list)) {
-		return -E_NO_MSG;
-	}
-
-	/* Your Code Here (1/3) */
-    // TAILQ_REMOVE(&msg_free_list, m, msg_link);
-    m = TAILQ_FIRST(&msg_free_list);
-    TAILQ_REMOVE(&msg_free_list, m, msg_link);
-    m->msg_tier ++;
-    m->msg_status = MSG_SENT;
-    m->msg_value = value;
-    m->msg_from = curenv->env_id;
-    m->msg_perm = perm | PTE_V;
-        p = page_lookup(curenv->env_pgdir, srcva, NULL);
-        if (p == NULL)
-            return -E_INVAL;
-        // try(page_insert(e->env_pgdir, e->env_asid, p, e->env_ipc_dstva, perm));
-    m->msg_page = p;
-    p->pp_ref++;
-    TAILQ_INSERT_TAIL(&(e->env_msg_list), m, msg_link);
-    return m->msg_tier;
-}
-
-int sys_msg_recv(u_int dstva) {
-	struct Msg *m;
-	struct Page *p;
-
-	if (dstva != 0 && (dstva < UTEMP || dstva >= UTOP)) {
-		return -E_INVAL;
-	}
-	if (TAILQ_EMPTY(&curenv->env_msg_list)) {
-		return -E_NO_MSG;
-	}
-
-	/* Your Code Here (2/3) */
-    // TAILQ_FIRST(&(curenv ->env_msg_list), m, msg_link);
-    m = TAILQ_FIRST(&(curenv->env_msg_list));
-    TAILQ_REMOVE(&(curenv->env_msg_list), m, msg_link);
-    u_int perm = m->msg_perm;
-    if (dstva != 0 && p != NULL) {
-        // p = page_lookup(curenv->env_pgdir, dstva, NULL);
-        // if (p == NULL)
-            // return -E_INVAL;
-        try(page_insert(curenv->env_pgdir, curenv->env_asid, p, dstva, perm ));
-        // page_insert(curenv->env_pgdir, curenv->env_asid, p, dstva, perm );
-        // p->pp_ref--;
-        page_decref(p);
-    }
-    // m->msg_tier ++;
-    m->msg_status = MSG_RECV;
-    curenv->env_msg_value = m->msg_value;
-    curenv->env_msg_from = m->msg_from;
-    curenv->env_msg_perm = m->msg_perm;
-    TAILQ_INSERT_TAIL(&msg_free_list, m, msg_link);
-    return 0;
-}
-
-int sys_msg_status(u_int msgid) {
-	struct Msg *m;
-
-	/* Your Code Here (3/3) */
-    m = &(msgs[MSGX(msgid)]);
-    if (msg2id(m) == msgid) {
-        return m->msg_status;
-    }
-    if (msg2id(m) > msgid) { 
-        return MSG_RECV;
-    }
-    return -E_INVAL;
-    
-}
 /* Overview:
  * 	This function is used to print a character on screen.
  *
@@ -397,7 +314,7 @@ int sys_set_env_status(u_int envid, u_int status)
             // 从ENV_NOT_RUNNABLE 变成了 ENV_RUNNABLE，需要重新变成ENV_NOT_RUNNABLE
             TAILQ_REMOVE(&env_sched_list, env, env_sched_link);
         } /*else if (env->env_status == ENV_NOT_RUNNABLE)*/
-        
+
         else if (status == ENV_RUNNABLE) {
             // 从ENV_RUNNABLE 变成了 ENV_NOT_RUNNABLE，需要重新变成ENV_RUNNABLE
             TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
@@ -610,6 +527,169 @@ int sys_read_dev(u_int va, u_int pa, u_int len)
     return 0;
 }
 
+int sys_msg_send(u_int envid, u_int value, u_int srcva, u_int perm)
+{
+    struct Env* e;
+    struct Page* p;
+    struct Msg* m;
+
+    if (srcva != 0 && is_illegal_va(srcva)) {
+        return -E_INVAL;
+    }
+    try(envid2env(envid, &e, 0));
+    if (TAILQ_EMPTY(&msg_free_list)) {
+        return -E_NO_MSG;
+    }
+
+    /* Your Code Here (1/3) */
+    // TAILQ_REMOVE(&msg_free_list, m, msg_link);
+    m = TAILQ_FIRST(&msg_free_list);
+    TAILQ_REMOVE(&msg_free_list, m, msg_link);
+    m->msg_tier++;
+    m->msg_status = MSG_SENT;
+    m->msg_value = value;
+    m->msg_from = curenv->env_id;
+    m->msg_perm = perm | PTE_V;
+    m->msg_page = p;
+    TAILQ_INSERT_TAIL(&(e->env_msg_list), m, msg_link);
+    if (srcva != 0) {
+        p = page_lookup(curenv->env_pgdir, srcva, NULL);
+        if (p == NULL)
+            return -E_INVAL;
+        p->pp_ref++;
+        // try(page_insert(e->env_pgdir, e->env_asid, p, e->env_ipc_dstva, perm));
+    }
+    // return m->msg_tier;
+    return msg2id(m);
+}
+
+int sys_msg_recv(u_int dstva)
+{
+    struct Msg* m;
+    struct Page* p;
+
+    if (dstva != 0 && is_illegal_va(dstva)) {
+        return -E_INVAL;
+    }
+    if (TAILQ_EMPTY(&curenv->env_msg_list)) {
+        return -E_NO_MSG;
+    }
+
+    /* Your Code Here (2/3) */
+    // TAILQ_FIRST(&(curenv ->env_msg_list), m, msg_link);
+    m = TAILQ_FIRST(&(curenv->env_msg_list));
+    TAILQ_REMOVE(&(curenv->env_msg_list), m, msg_link);
+    u_int perm = m->msg_perm;
+    if (dstva != 0 && p != NULL) {
+        // p = page_lookup(curenv->env_pgdir, dstva, NULL);
+        // if (p == NULL)
+        // return -E_INVAL;
+        try(page_insert(curenv->env_pgdir, curenv->env_asid, p, dstva, perm));
+        // page_insert(curenv->env_pgdir, curenv->env_asid, p, dstva, perm );
+        // p->pp_ref--;
+        page_decref(p);
+    }
+    // m->msg_tier ++;
+    m->msg_status = MSG_RECV;
+    curenv->env_msg_value = m->msg_value;
+    curenv->env_msg_from = m->msg_from;
+    curenv->env_msg_perm = m->msg_perm;
+    TAILQ_INSERT_TAIL(&msg_free_list, m, msg_link);
+    return 0;
+}
+
+int sys_msg_status(u_int msgid)
+{
+    struct Msg* m;
+
+    /* Your Code Here (3/3) */
+    m = &(msgs[MSGX(msgid)]);
+    if (msg2id(m) == msgid) {
+        return m->msg_status;
+    }
+    if (msg2id(m) > msgid) {
+        return MSG_RECV;
+    }
+    return -E_INVAL;
+}
+// int sys_msg_send(u_int envid, u_int value, u_int srcva, u_int perm)
+// {
+//     struct Env* e;
+//     struct Page* p;
+//     struct Msg* m;
+
+//     if (srcva != 0 && is_illegal_va(srcva)) {
+//         return -E_INVAL;
+//     }
+//     try(envid2env(envid, &e, 0));
+//     if (TAILQ_EMPTY(&msg_free_list)) {
+//         return -E_NO_MSG;
+//     }
+//     /* Your Code Here (1/3) */
+//     m = TAILQ_FIRST(&msg_free_list);
+//     TAILQ_REMOVE(&msg_free_list, m, msg_link);
+//     m->msg_tier++;
+//     m->msg_status = MSG_SENT;
+//     m->msg_value = value;
+//     m->msg_from = curenv->env_id;
+//     if (srcva != 0) {
+//         p = page_lookup(curenv->env_pgdir, srcva, NULL);
+//         if (p == NULL) {
+//             return -E_INVAL;
+//         }
+//         p->pp_ref++;
+//         m->msg_page = p;
+//     } else {
+//         m->msg_page = NULL;
+//     }
+//     m->msg_perm = PTE_V | perm;
+//     TAILQ_INSERT_TAIL(&e->env_msg_list, m, msg_link);
+//     return msg2id(m);
+// }
+
+// int sys_msg_recv(u_int dstva)
+// {
+//     struct Msg* m;
+//     struct Page* p;
+//     if (dstva != 0 && is_illegal_va(dstva)) {
+//         return -E_INVAL;
+//     }
+//     if (TAILQ_EMPTY(&curenv->env_msg_list)) {
+//         return -E_NO_MSG;
+//     }
+
+//     /* Your Code Here (2/3) */
+//     m = TAILQ_FIRST(&curenv->env_msg_list);
+//     TAILQ_REMOVE(&curenv->env_msg_list, m, msg_link);
+//     if (dstva != 0 && m->msg_page != NULL) {
+//         page_insert(curenv->env_pgdir, curenv->env_asid, m->msg_page, dstva, m->msg_perm);
+//     }
+//     if (m->msg_page != NULL) {
+//         page_decref(m->msg_page);
+//     }
+//     curenv->env_msg_from = m->msg_from;
+//     curenv->env_msg_perm = m->msg_perm;
+//     curenv->env_msg_value = m->msg_value;
+//     m->msg_status = MSG_RECV;
+//     TAILQ_INSERT_TAIL(&msg_free_list, m, msg_link);
+//     return 0;
+// }
+
+// int sys_msg_status(u_int msgid)
+// {
+//     struct Msg* m;
+//     /* Your Code Here (3/3) */
+//     m = &msgs[MSGX(msgid)];
+//     if (msg2id(m) == msgid) {
+//         return m->msg_status;
+
+//     } else if (msg2id(m) > msgid) {
+//         return MSG_RECV;
+
+//     } else {
+//         return -E_INVAL;
+//     }
+// }
 void* syscall_table[MAX_SYSNO] = {
     [SYS_putchar] = sys_putchar,
     [SYS_print_cons] = sys_print_cons,
@@ -630,8 +710,8 @@ void* syscall_table[MAX_SYSNO] = {
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
     [SYS_msg_send] = sys_msg_send,
-	[SYS_msg_recv] = sys_msg_recv,
-	[SYS_msg_status] = sys_msg_status,
+    [SYS_msg_recv] = sys_msg_recv,
+    [SYS_msg_status] = sys_msg_status,
 };
 
 /* Overview:

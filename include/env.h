@@ -2,7 +2,6 @@
 #define _ENV_H_
 
 #include <msg.h>
-#include <msg_my.h>
 #include <debugk.h>
 #include <mmu.h>
 #include <queue.h>

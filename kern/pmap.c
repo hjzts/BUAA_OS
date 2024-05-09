@@ -5,6 +5,7 @@
 #include <mmu.h>
 #include <pmap.h>
 #include <printk.h>
+#include <debugk.h>
 
 /* These variables are set by mips_detect_memory(ram_low_size); */
 static u_long memsize; /* Maximum physical address */
@@ -273,6 +274,7 @@ int page_insert(Pde* pgdir, u_int asid, struct Page* pp, u_long va, u_int perm)
     If `va` doesn't mapped to any Page, return NULL.*/
 struct Page* page_lookup(Pde* pgdir, u_long va, Pte** ppte)
 {
+    debugk("page_lookup function is called in kern/pmap.c");
     struct Page* pp;
     Pte* pte;
 
