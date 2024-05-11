@@ -266,8 +266,9 @@ int sys_exofork(void)
     /* Step 2: Copy the current Trapframe below 'KSTACKTOP' to the new env's 'env_tf'. */
     /* Exercise 4.9: Your code here. (2/4) */
     // 复制相应内存空间
-    memcpy((void*)(&(e->env_tf)), (void*)(KSTACKTOP - sizeof(struct Trapframe)), sizeof(struct Trapframe));
-    // TODO: e->env_tf = *((struct Trapframe*)KSTACKTOP - 1);
+    // memcpy((void*)(&(e->env_tf)), (void*)(KSTACKTOP - sizeof(struct Trapframe)), sizeof(struct Trapframe));
+    // 结构体的赋值，是直接结构体的内存的拷贝!!!!神奇的C语言
+    e->env_tf = *((struct Trapframe*)KSTACKTOP - 1);
     debugk("memcpy is ok in function sys_exofork in kern/syscall_all.c");
     /* Step 3: Set the new env's 'env_tf.regs[2]' to 0 to indicate the return value in child. */
     /* Exercise 4.9: Your code here. (3/4) */
@@ -501,11 +502,15 @@ int sys_write_dev(u_int va, u_int pa, u_int len)
 {
     /* Exercise 5.1: Your code here. (1/2) */
     debugk("function sys_write_dev is called in kern/syscall_all.c");
+    if (!(va == 0x7f3fdfcc && pa == 0x180003fd && len == 1)) {
+        debugk("sys_write_dev va is %x, pa is %x, len is %x", va, pa, len);
+    }
+
     if ((len != 1) && (len != 2) && (len != 4))
         return -E_INVAL;
-    if (is_illegal_va(va))
+    if (is_illegal_va_range(va, len))
         return -E_INVAL;
- 
+
     if (((pa >= 0x180003f8) && (pa + len < 0x18000418)) || ((pa >= 0x180001f0) && (pa + len < 0x180001f8))) {
         switch (len) {
         case 1:
@@ -520,8 +525,9 @@ int sys_write_dev(u_int va, u_int pa, u_int len)
         default:
             break;
         }
+        return 0;
     }
-    return 0;
+    return -E_INVAL;
 }
 
 /* Overview:
@@ -542,26 +548,33 @@ int sys_write_dev(u_int va, u_int pa, u_int len)
 int sys_read_dev(u_int va, u_int pa, u_int len)
 {
     /* Exercise 5.1: Your code here. (2/2) */
-    debugk("function sys_read_dev is called in kern/syscall_all.c");
+    // debugk("function sys_read_dev is called in kern/syscall_all.c");
     if ((len != 1) && (len != 2) && (len != 4))
         return -E_INVAL;
-    if (is_illegal_va(va))
+    if (!(va == 0x7f3fdfcc && pa == 0x180003fd && len == 1)) {
+        debugk("sys_read_dev va is %x, pa is %x, len is %x", va, pa, len);
+    }
+
+    if (is_illegal_va_range(va, len))
         return -E_INVAL;
 
-    switch (len) {
-    case 1:
-        *(uint8_t*)va = ioread8(pa);
-        break;
-    case 2:
-        *(uint16_t*)va = ioread16(pa);
-        break;
-    case 4:
-        *(uint32_t*)va = ioread32(pa);
-        break;
-    default:
-        break;
+    if (((pa >= 0x180003f8) && (pa + len < 0x18000418)) || ((pa >= 0x180001f0) && (pa + len < 0x180001f8))) {
+        switch (len) {
+        case 1:
+            *(uint8_t*)va = ioread8(pa);
+            break;
+        case 2:
+            *(uint16_t*)va = ioread16(pa);
+            break;
+        case 4:
+            *(uint32_t*)va = ioread32(pa);
+            break;
+        default:
+            break;
+        }
+        return 0;
     }
-    return 0;
+    return -E_INVAL;
 }
 
 void* syscall_table[MAX_SYSNO] = {
