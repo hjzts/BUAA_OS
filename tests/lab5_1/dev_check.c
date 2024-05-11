@@ -1,5 +1,6 @@
 #include <lib.h>
 #include <malta.h>
+#include <debugk.h>
 
 int main() {
 	debugf("devtst begin\n");
@@ -9,6 +10,7 @@ int main() {
 	char c __attribute__((aligned(4))) = 0;
 	u_int cons_lsr = MALTA_SERIAL_LSR;
 	u_int cons = MALTA_SERIAL_DATA;
+	// debugk("================begin===================");
 	while (1) {
 		if ((r = syscall_read_dev(&c, cons_lsr, 1)) != 0) {
 			debugf("syscall_read_dev is bad\n");
