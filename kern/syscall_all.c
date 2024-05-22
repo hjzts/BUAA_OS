@@ -16,6 +16,10 @@ extern struct Env* curenv;
  * Pre-Condition:
  * 	`c` is the character you want to print.
  */
+int sys_clone(void *func ,void child_stack) {
+	
+}
+
 void sys_putchar(int c)
 {
     printcharc((char)c);
@@ -529,7 +533,8 @@ int sys_read_dev(u_int va, u_int pa, u_int len)
 }
 
 void* syscall_table[MAX_SYSNO] = {
-    [SYS_putchar] = sys_putchar,
+    [SYS_clone] = syc_clone,
+	[SYS_putchar] = sys_putchar,
     [SYS_print_cons] = sys_print_cons,
     [SYS_getenvid] = sys_getenvid,
     [SYS_yield] = sys_yield,

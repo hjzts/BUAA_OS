@@ -216,7 +216,14 @@ static int env_setup_vm(struct Env* e)
     try(page_alloc(&p));
     debugk("page is alloced in function env_setup_vm");
     /* Exercise 3.3: Your code here. */
-    p->pp_ref++;
+    
+    
+    
+    //p->pp_ref++;
+    p->pp_ref = 1;
+
+
+
     debugk("page p's page2kva is %lu", page2kva(p));
     if (!e)
         return -E_NO_FREE_ENV;
@@ -254,6 +261,45 @@ static int env_setup_vm(struct Env* e)
  *     'env_id', 'env_asid', 'env_parent_id', 'env_tf.regs[29]', 'env_tf.cp0_status',
  *     'env_user_tlb_mod_entry', 'env_runs'
  */
+int env_clone(struct Env** new, u_int parent_id)
+{
+    int r;
+    struct Env* e;
+    e = LIST_FIRST(&env_free_list);
+    //r = env_setup_vm(e);
+    //if (r < 0) {
+    //    return r;
+    //}
+    
+    e->env_user_tlb_mod_entry = 0; // for lab4
+    e->env_runs = 0; // for lab6
+    /* Exercise 3.4: Your code here. (3/4) */
+    e->env_id = mkenvid(e);
+    debugk("env_id is made in function env_alloc");
+    
+    struct Env*   p = &envs[ENVX(envid)];
+    //try(asid_alloc(&(e->env_asid)));
+    e->env_asid = p->env_asid; 
+    e->env_pgdir = p->env_pgdir;
+    pa2page(PADDR(e->env_pgdir))->pp_ref++;
+    
+    e->env_parent_id = parent_id;
+    /* Step 4: Initialize the sp and 'cp0_status' in 'e->env_tf'.
+     *   Set the EXL bit to ensure that the processor remains in kernel mode during context
+     * recovery. Additionally, set UM to 1 so that when ERET unsets EXL, the processor
+     * transitions to user mode.
+     */
+    e->env_tf.cp0_status = STATUS_IM7 | STATUS_IE | STATUS_EXL | STATUS_UM;
+    // Reserve space for 'argc' and 'argv'.
+    e->env_tf.regs[29] = USTACKTOP - sizeof(int) - sizeof(char**);
+
+    /* Step 5: Remove the new Env from env_free_list. */
+    /* Exercise 3.4: Your code here. (4/4) */
+    LIST_REMOVE(e, env_link);
+    *new = e;
+    return 0;
+}
+
 int env_alloc(struct Env** new, u_int parent_id)
 {
     int r;
@@ -451,8 +497,11 @@ void env_free(struct Env* e)
     }
     /* Hint: free the page directory. */
     page_decref(pa2page(PADDR(e->env_pgdir)));
+
+	if (pa2page(PADDR(e->env_pgdir))->pp_ref == 1) 
+		asid_free(e->env_asid);
     /* Hint: free the ASID */
-    asid_free(e->env_asid);
+    //asid_free(e->env_asid);
     /* Hint: invalidate page directory in TLB */
     tlb_invalidate(e->env_asid, UVPT + (PDX(UVPT) << PGSHIFT));
     /* Hint: return the environment to the free list. */

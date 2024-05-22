@@ -4,6 +4,7 @@
 #ifndef __ASSEMBLER__
 
 enum {
+	SYS_clone,
 	SYS_putchar,
 	SYS_print_cons,
 	SYS_getenvid,

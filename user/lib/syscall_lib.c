@@ -34,6 +34,10 @@ int syscall_mem_alloc(u_int envid, void *va, u_int perm) {
 	return msyscall(SYS_mem_alloc, envid, va, perm);
 }
 
+int syscall_clone(void * func, void* child_stack) {
+	return msyscall(SYS_clone, func, child_stack);
+}
+
 int syscall_mem_map(u_int srcid, void *srcva, u_int dstid, void *dstva, u_int perm) {
 	return msyscall(SYS_mem_map, srcid, srcva, dstid, dstva, perm);
 }
