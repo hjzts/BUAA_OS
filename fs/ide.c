@@ -11,16 +11,18 @@
  *   Wait for the IDE device to complete previous requests and be ready
  *   to receive subsequent requests.
  */
-static uint8_t wait_ide_ready() {
-	uint8_t flag;
-	while (1) {
-		panic_on(syscall_read_dev(&flag, MALTA_IDE_STATUS, 1));
-		if ((flag & MALTA_IDE_BUSY) == 0) {
-			break;
-		}
-		syscall_yield();
-	}
-	return flag;
+static uint8_t wait_ide_ready()
+{
+    debugk("function wait_ide_ready is call in fs/ide.c");
+    uint8_t flag;
+    while (1) {
+        panic_on(syscall_read_dev(&flag, MALTA_IDE_STATUS, 1));
+        if ((flag & MALTA_IDE_BUSY) == 0) {
+            break;
+        }
+        syscall_yield();
+    }
+    return flag;
 }
 
 /* Overview:
@@ -40,51 +42,57 @@ static uint8_t wait_ide_ready() {
  * Hint: Use syscalls to access device registers and buffers.
  * Hint: Use the physical address and offsets defined in 'include/malta.h'.
  */
-void ide_read(u_int diskno, u_int secno, void *dst, u_int nsecs) {
-	uint8_t temp;
-	u_int offset = 0, max = nsecs + secno;
-	panic_on(diskno >= 2);
+void ide_read(u_int diskno, u_int secno, void* dst, u_int nsecs)
+{
+    uint8_t temp;
+    u_int offset = 0, max = nsecs + secno;
+    panic_on(diskno >= 2);
 
-	// Read the sector in turn
-	while (secno < max) {
-		temp = wait_ide_ready();
-		// Step 1: Write the number of operating sectors to NSECT register
-		temp = 1;
-		panic_on(syscall_write_dev(&temp, MALTA_IDE_NSECT, 1));
+    // Read the sector in turn
+    while (secno < max) {
+        temp = wait_ide_ready();
+        // Step 1: Write the number of operating sectors to NSECT register
+        temp = 1;
+        panic_on(syscall_write_dev(&temp, MALTA_IDE_NSECT, 1));
 
-		// Step 2: Write the 7:0 bits of sector number to LBAL register
-		temp = secno & 0xff;
-		panic_on(syscall_write_dev(&temp, MALTA_IDE_LBAL, 1));
+        // Step 2: Write the 7:0 bits of sector number to LBAL register
+        temp = secno & 0xff;
+        panic_on(syscall_write_dev(&temp, MALTA_IDE_LBAL, 1));
 
-		// Step 3: Write the 15:8 bits of sector number to LBAM register
-		/* Exercise 5.3: Your code here. (1/9) */
+        // Step 3: Write the 15:8 bits of sector number to LBAM register
+        /* Exercise 5.3: Your code here. (1/9) */
+        temp = (secno >> 8) & 0xff;
+        panic_on(syscall_write_dev(&temp, MALTA_IDE_LBAM, 1));
 
-		// Step 4: Write the 23:16 bits of sector number to LBAH register
-		/* Exercise 5.3: Your code here. (2/9) */
+        // Step 4: Write the 23:16 bits of sector number to LBAH register
+        /* Exercise 5.3: Your code here. (2/9) */
+        temp = (secno >> 16) & 0xff;
+        panic_on(syscall_write_dev(&temp, MALTA_IDE_LBAH, 1));
 
-		// Step 5: Write the 27:24 bits of sector number, addressing mode
-		// and diskno to DEVICE register
-		temp = ((secno >> 24) & 0x0f) | MALTA_IDE_LBA | (diskno << 4);
-		panic_on(syscall_write_dev(&temp, MALTA_IDE_DEVICE, 1));
+        // Step 5: Write the 27:24 bits of sector number, addressing mode
+        // and diskno to DEVICE register
+        temp = ((secno >> 24) & 0x0f) | MALTA_IDE_LBA | (diskno << 4);
+        panic_on(syscall_write_dev(&temp, MALTA_IDE_DEVICE, 1));
 
-		// Step 6: Write the working mode to STATUS register
-		temp = MALTA_IDE_CMD_PIO_READ;
-		panic_on(syscall_write_dev(&temp, MALTA_IDE_STATUS, 1));
+        // Step 6: Write the working mode to STATUS register
+        temp = MALTA_IDE_CMD_PIO_READ;
+        panic_on(syscall_write_dev(&temp, MALTA_IDE_STATUS, 1));
 
-		// Step 7: Wait until the IDE is ready
-		temp = wait_ide_ready();
+        // Step 7: Wait until the IDE is ready
+        temp = wait_ide_ready();
 
-		// Step 8: Read the data from device
-		for (int i = 0; i < SECT_SIZE / 4; i++) {
-			panic_on(syscall_read_dev(dst + offset + i * 4, MALTA_IDE_DATA, 4));
-		}
+        // Step 8: Read the data from device
+        for (int i = 0; i < SECT_SIZE / 4; i++) {
+            // va:dst+offset+i*4  pa:MALTA_IDE_DATA len:4
+            panic_on(syscall_read_dev(dst + offset + i * 4, MALTA_IDE_DATA, 4));
+        }
 
-		// Step 9: Check IDE status
-		panic_on(syscall_read_dev(&temp, MALTA_IDE_STATUS, 1));
+        // Step 9: Check IDE status
+        panic_on(syscall_read_dev(&temp, MALTA_IDE_STATUS, 1));
 
-		offset += SECT_SIZE;
-		secno += 1;
-	}
+        offset += SECT_SIZE;
+        secno += 1;
+    }
 }
 
 /* Overview:
@@ -102,46 +110,106 @@ void ide_read(u_int diskno, u_int secno, void *dst, u_int nsecs) {
  * Hint: Use syscalls to access device registers and buffers.
  * Hint: Use the physical address and offsets defined in 'include/malta.h'.
  */
-void ide_write(u_int diskno, u_int secno, void *src, u_int nsecs) {
-	uint8_t temp;
-	u_int offset = 0, max = nsecs + secno;
-	panic_on(diskno >= 2);
+void ide_write(u_int diskno, u_int secno, void* src, u_int nsecs)
+{
+    uint8_t temp;
+    u_int offset = 0, max = nsecs + secno;
+    panic_on(diskno >= 2);
 
-	// Write the sector in turn
-	while (secno < max) {
-		temp = wait_ide_ready();
-		// Step 1: Write the number of operating sectors to NSECT register
-		/* Exercise 5.3: Your code here. (3/9) */
+    // Write the sector in turn
+    while (secno < max) {
+        temp = wait_ide_ready();
+        // Step 1: Write the number of operating sectors to NSECT register
+        /* Exercise 5.3: Your code here. (3/9) */
+        temp = 1;
+        panic_on(syscall_write_dev(&temp, MALTA_IDE_NSECT, 1));
+        // 设置一次需要操作的扇区的数量，本身就只有1字节，怎么写更多嘛（
 
-		// Step 2: Write the 7:0 bits of sector number to LBAL register
-		/* Exercise 5.3: Your code here. (4/9) */
+        // Step 2: Write the 7:0 bits of sector number to LBAL register
+        /* Exercise 5.3: Your code here. (4/9) */
+        temp = secno & 0xff;
+        panic_on(syscall_write_dev(&temp, MALTA_IDE_LBAL, 1));
 
-		// Step 3: Write the 15:8 bits of sector number to LBAM register
-		/* Exercise 5.3: Your code here. (5/9) */
+        // Step 3: Write the 15:8 bits of sector number to LBAM register
+        /* Exercise 5.3: Your code here. (5/9) */
+        temp = (secno >> 8) & 0xff;
+        panic_on(syscall_write_dev(&temp, MALTA_IDE_LBAM, 1));
 
-		// Step 4: Write the 23:16 bits of sector number to LBAH register
-		/* Exercise 5.3: Your code here. (6/9) */
+        // Step 4: Write the 23:16 bits of sector number to LBAH register
+        /* Exercise 5.3: Your code here. (6/9) */
+        temp = (secno >> 16) & 0xff;
+        panic_on(syscall_write_dev(&temp, MALTA_IDE_LBAH, 1));
 
-		// Step 5: Write the 27:24 bits of sector number, addressing mode
-		// and diskno to DEVICE register
-		/* Exercise 5.3: Your code here. (7/9) */
+        // Step 5: Write the 27:24 bits of sector number, addressing mode
+        // and diskno to DEVICE register
+        /* Exercise 5.3: Your code here. (7/9) */
+        temp = ((secno >> 24) & 0x0f) | MALTA_IDE_LBA | (diskno << 4);
+        panic_on(syscall_write_dev(&temp, MALTA_IDE_DEVICE, 1));
 
-		// Step 6: Write the working mode to STATUS register
-		/* Exercise 5.3: Your code here. (8/9) */
+        // Step 6: Write the working mode to STATUS register
+        /* Exercise 5.3: Your code here. (8/9) */
+        temp = MALTA_IDE_CMD_PIO_WRITE;
+        panic_on(syscall_write_dev(&temp, MALTA_IDE_STATUS, 1));
+        // Step 7: Wait until the IDE is ready
+        temp = wait_ide_ready();
 
-		// Step 7: Wait until the IDE is ready
-		temp = wait_ide_ready();
+        // Step 8: Write the data to device
+        for (int i = 0; i < SECT_SIZE / 4; i++) {
+            /* Exercise 5.3: Your code here. (9/9) */
+            panic_on(syscall_write_dev(src + offset + i * 4, MALTA_IDE_DATA, 4));
+        }
 
-		// Step 8: Write the data to device
-		for (int i = 0; i < SECT_SIZE / 4; i++) {
-			/* Exercise 5.3: Your code here. (9/9) */
+        // Step 9: Check IDE status
+        panic_on(syscall_read_dev(&temp, MALTA_IDE_STATUS, 1));
 
-		}
-
-		// Step 9: Check IDE status
-		panic_on(syscall_read_dev(&temp, MALTA_IDE_STATUS, 1));
-
-		offset += SECT_SIZE;
-		secno += 1;
-	}
+        offset += SECT_SIZE;
+        secno += 1;
+    }
 }
+
+// u_int wait_ide()
+// {
+//     u_int flag;
+//     while (1) {
+//         flag = *((volatile u_char*)(MALTA_IDE_STATUS + KSEG1));
+//         if ((flag & MALTA_IDE_BUSY) == 0)
+//             break;
+//     }
+//     return flag;
+// }
+
+// void read_sector(int diskno, int secno, void* dst)
+// {
+//     wait_ide();
+
+//     *((volatile u_char*)(MALTA_IDE_NSECT + KSEG1)) = 1;
+//     *((volatile u_char*)(MALTA_IDE_LBAL + KSEG1)) = secno & 0xff;
+//     *((volatile u_char*)(MALTA_IDE_LBAM + KSEG1)) = (secno >> 8) & 0xff;
+//     *((volatile u_char*)(MALTA_IDE_LBAH + KSEG1)) = (secno >> 16) & 0xff;
+//     *((volatile u_char*)(MALTA_IDE_DEVICE + KSEG1)) = ((secno >> 24) & 0x0f) | MALTA_IDE_LBA | (diskno << 4);
+//     *((volatile u_char*)(MALTA_IDE_STATUS + KSEG1)) = MALTA_IDE_CMD_PIO_READ;
+
+//     wait_ide();
+
+//     for (int i = 0; i < SECT_SIZE; i += 4) {
+//         memcpy(dst + i, (void*)(MALTA_IDE_DATA + KSEG1), 4);
+//     }
+// }
+
+// void write_sector(int diskno, int secno, void* src)
+// {
+//     wait_ide();
+
+//     *((volatile u_char*)(MALTA_IDE_NSECT + KSEG1)) = 1;
+//     *((volatile u_char*)(MALTA_IDE_LBAL + KSEG1)) = secno & 0xff;
+//     *((volatile u_char*)(MALTA_IDE_LBAM + KSEG1)) = (secno >> 8) & 0xff;
+//     *((volatile u_char*)(MALTA_IDE_LBAH + KSEG1)) = (secno >> 16) & 0xff;
+//     *((volatile u_char*)(MALTA_IDE_DEVICE + KSEG1)) = ((secno >> 24) & 0x0f) | MALTA_IDE_LBA | (diskno << 4);
+//     *((volatile u_char*)(MALTA_IDE_STATUS + KSEG1)) = MALTA_IDE_CMD_PIO_WRITE;
+
+//     wait_ide();
+
+//     for (int i = 0; i < SECT_SIZE; i += 4) {
+//         memcpy((void*)(MALTA_IDE_DATA + KSEG1), src + i, 4);
+//     }
+// }

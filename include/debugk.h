@@ -2,7 +2,7 @@
 #define _DBGK_H_
 #include <printk.h>
 
-// #define DEBUGK 
+// #define DEBUGK
 // 可以注释，那就不会打印
 
 #ifdef DEBUGK
@@ -16,7 +16,7 @@
 #endif
 
 #ifdef DEBUGK
-#define debugk_user(fmt, ...)                      \
+#define debugk_user(fmt, ...)                 \
     do {                                      \
         debugf("[DEBUG]" fmt, ##__VA_ARGS__); \
         debugf("\n");                         \
