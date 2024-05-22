@@ -13,6 +13,9 @@
  *  - Launch a 'user_panic' if 'va' is not a copy-on-write page.
  *  - Otherwise, this handler should map a private writable copy of
  *    the faulting page at the same address.
+ * 这里可以认为不能直接修改tlb，需要先通过一个中间temp页面，也就是UCOW处的页面
+ * 所以先修改perm后，alloc一个COW的页面
+ * 然后进行map和unmap即可，UCOW的页面只是走了个片场，又可以由其他进程来使用
  */
 static void __attribute__((noreturn)) cow_entry(struct Trapframe* tf)
 {
@@ -34,9 +37,10 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe* tf)
     /* Exercise 4.13: Your code here. (2/6) */
     perm = (perm & ~PTE_COW) | PTE_D;
     debugk_user("perm has remove PTE_COE and add PTE_D in function cow_enty");
-    
+
     /* Step 3: Allocate a new page at 'UCOW'. */
     /* Exercise 4.13: Your code here. (3/6) */
+    // 在用户态的角度来看就是在UCOW这里有了一个对应的物理页面，就可以实际访问这个地方了
     try(syscall_mem_alloc(0, (void*)UCOW, perm));
     // try(syscall_mem_alloc(0, (void*)UCOW, PTE_V | PTE_D));
 
@@ -54,7 +58,8 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe* tf)
     /* Exercise 4.13: Your code here. (6/6) */
     syscall_mem_unmap(0, (void*)UCOW);
 
-    // Step 7: Return to the faulting routine.
+    // Step 7: Return to the faulting routine. 返回到故障例程
+    // 设置当前进程的异常处理栈的值
     int r = syscall_set_trapframe(0, tf);
     user_panic("syscall_set_trapframe returned %d", r);
 }
@@ -98,6 +103,7 @@ static void duppage(u_int envid, u_int vpn)
     /* Hint: The page should be first mapped to the child before remapped in the parent. (Why?)
      */
     // 可能是子进程不会被再次调度(还是NOT_RUNNABLE)，但是父进程可能会被中断？
+    // 要确定目前都是在用户态，任何时刻都可能通过系统调用进入内核态
     /* Exercise 4.10: Your code here. (2/2) */
     // 这些页面应该是用户空间，也就是父进程的页面
     // 在用户空间，他的id就是0
@@ -129,6 +135,7 @@ int fork(void)
     u_int i;
 
     /* Step 1: Set our TLB Mod user exception entry to 'cow_entry' if not done yet. */
+    // 这里相当于是直接将 函数地址 强制转换 为无符号整数
     if (env->env_user_tlb_mod_entry != (u_int)cow_entry) {
         try(syscall_set_tlb_mod_entry(0, cow_entry));
     }
@@ -138,6 +145,7 @@ int fork(void)
     // correct value.
     child = syscall_exofork();
     if (child == 0) {
+        // 子进程直接 结束了
         env = envs + ENVX(syscall_getenvid());
         return 0;
     }
@@ -154,11 +162,13 @@ int fork(void)
         }
     }
     // 另一种写法，一样的，相当于是一页一页来
-    /*for (i = 0; i < VPN(USTACKTOP); i++) {
+    /*
+    for (i = 0; i < VPN(USTACKTOP); i++) {
         if ((vpd[i >> 10] & PTE_V) && (vpt[i] & PTE_V)) {
             duppage(child, i);
         }
-    }*/
+    }
+    */
     /* Step 4: Set up the child's tlb mod handler and set child's 'env_status' to
      * 'ENV_RUNNABLE'. */
     /* Hint:
@@ -168,5 +178,6 @@ int fork(void)
     /* Exercise 4.15: Your code here. (2/2) */
     try(syscall_set_tlb_mod_entry(child, cow_entry));
     try(syscall_set_env_status(child, ENV_RUNNABLE));
+    // 全部完成，设置子进程
     return child;
 }

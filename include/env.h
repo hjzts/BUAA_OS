@@ -45,6 +45,7 @@ struct Env {
 
     // Lab 4 fault handling
     u_int env_user_tlb_mod_entry; // userspace TLB Mod handler
+    // 函数地址
 
     // Lab 6 scheduler counts
     u_int env_runs; // number of times we've been env_run'ed

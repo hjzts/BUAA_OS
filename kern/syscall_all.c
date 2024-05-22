@@ -267,7 +267,8 @@ int sys_exofork(void)
     /* Exercise 4.9: Your code here. (2/4) */
     // 复制相应内存空间
     memcpy((void*)(&(e->env_tf)), (void*)(KSTACKTOP - sizeof(struct Trapframe)), sizeof(struct Trapframe));
-    // TODO: e->env_tf = *((struct Trapframe*)KSTACKTOP - 1);
+    // TODO: 
+    // e->env_tf = *((struct Trapframe*)KSTACKTOP - 1);
     debugk("memcpy is ok in function sys_exofork in kern/syscall_all.c");
     /* Step 3: Set the new env's 'env_tf.regs[2]' to 0 to indicate the return value in child. */
     /* Exercise 4.9: Your code here. (3/4) */
@@ -313,7 +314,7 @@ int sys_set_env_status(u_int envid, u_int status)
             // 从ENV_NOT_RUNNABLE 变成了 ENV_RUNNABLE，需要重新变成ENV_NOT_RUNNABLE
             TAILQ_REMOVE(&env_sched_list, env, env_sched_link);
         } /*else if (env->env_status == ENV_NOT_RUNNABLE)*/
-        
+
         else if (status == ENV_RUNNABLE) {
             // 从ENV_RUNNABLE 变成了 ENV_NOT_RUNNABLE，需要重新变成ENV_RUNNABLE
             TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
@@ -344,6 +345,7 @@ int sys_set_trapframe(u_int envid, struct Trapframe* tf)
     try(envid2env(envid, &env, 1));
     if (env == curenv) {
         *((struct Trapframe*)KSTACKTOP - 1) = *tf;
+        // 将这个envid对应的env的异常处理栈的值 复制为 tf的值
         // return `tf->regs[2]` instead of 0, because return value overrides regs[2] on
         // current trapframe.
         return tf->regs[2];
