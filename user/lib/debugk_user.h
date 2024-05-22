@@ -1,7 +1,7 @@
 #ifndef _DBGK_H_
 #define _DBGK_H_
 
-// #define DEBUGK // 可以注释，那就不会打印
+//#define DEBUGK // 可以注释，那就不会打印
 
 #ifdef DEBUGK
 #define debugk_user(fmt, ...)                 \

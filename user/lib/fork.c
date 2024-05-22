@@ -146,6 +146,7 @@ int fork(void)
     child = syscall_exofork();
     if (child == 0) {
         // 子进程直接 结束了
+	straced = 0;
         env = envs + ENVX(syscall_getenvid());
         return 0;
     }
