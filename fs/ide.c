@@ -13,7 +13,7 @@
  */
 static uint8_t wait_ide_ready()
 {
-    debugk("function wait_ide_ready is call in fs/ide.c");
+    debugk_user("function wait_ide_ready is call in fs/ide.c");
     uint8_t flag;
     while (1) {
         panic_on(syscall_read_dev(&flag, MALTA_IDE_STATUS, 1));
@@ -44,6 +44,7 @@ static uint8_t wait_ide_ready()
  */
 void ide_read(u_int diskno, u_int secno, void* dst, u_int nsecs)
 {
+    debugk_user("function ide_read is called in fs/ide.c");
     uint8_t temp;
     u_int offset = 0, max = nsecs + secno;
     panic_on(diskno >= 2);
