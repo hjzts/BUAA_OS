@@ -17,7 +17,9 @@ extern struct Env* curenv;
  * 	`c` is the character you want to print.
  */
 int sys_clone(void *func ,void child_stack) {
-	
+struct Env* env;
+struct Page* pp;
+
 }
 
 void sys_putchar(int c)
