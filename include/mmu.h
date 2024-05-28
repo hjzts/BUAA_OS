@@ -143,6 +143,7 @@
  * Part 3.  Our helper functions.
  */
 #include <error.h>
+#include <error_my.h>
 #include <string.h>
 #include <types.h>
 
