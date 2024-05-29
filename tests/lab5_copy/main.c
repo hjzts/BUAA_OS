@@ -1,16 +1,20 @@
 #include <lib.h>
 
-#define os_assert(cond, format_str, ...)                                                           \
-	do {                                                                                       \
-		if (!(cond)) {                                                                     \
-			user_halt("ERROR: " format_str "\n", __VA_ARGS__);                         \
-		}                                                                                  \
+#define os_assert(cond, format_str, ...)                       \
+	do                                                         \
+	{                                                          \
+		if (!(cond))                                           \
+		{                                                      \
+			user_halt("ERROR: " format_str "\n", __VA_ARGS__); \
+		}                                                      \
 	} while (0)
-#define os_assert0(cond, format_str)                                                               \
-	do {                                                                                       \
-		if (!(cond)) {                                                                     \
-			user_halt("ERROR: " format_str "\n");                                      \
-		}                                                                                  \
+#define os_assert0(cond, format_str)              \
+	do                                            \
+	{                                             \
+		if (!(cond))                              \
+		{                                         \
+			user_halt("ERROR: " format_str "\n"); \
+		}                                         \
 	} while (0)
 
 static char *path_src = "/bin";
@@ -18,13 +22,15 @@ static char *file_src = "/bin/rr/test.rs";
 static char *path_dst = "/target";
 static char *file_dst = "/target/rr/test.rs";
 
-void test_copy_read(char *copy_src, char *copy_dst, char *src_file, char *dst_file, char *str) {
+void test_copy_read(char *copy_src, char *copy_dst, char *src_file, char *dst_file, char *str)
+{
 	char buf1[2048], buf2[2048];
 	int r = open(src_file, O_RDWR);
 	os_assert(r >= 0, "failed to open %s, return value: %d", src_file, r);
 	read(r, buf1, 2048);
 	close(r);
 
+	debugf("111\n");
 	r = copy(copy_src, copy_dst);
 	debugf("copy return value: %d\n", r);
 
@@ -42,7 +48,8 @@ void test_copy_read(char *copy_src, char *copy_dst, char *src_file, char *dst_fi
 	debugf("OSTEST_OK\n");
 }
 
-int main() {
+int main()
+{
 	test_copy_read(path_src, path_dst, file_src, file_dst, "hello world");
 	return 0;
 }

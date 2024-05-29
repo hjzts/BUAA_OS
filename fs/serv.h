@@ -14,6 +14,11 @@
 /* Maximum disk size we can handle (1GB) */
 #define DISKMAX 0x40000000
 
+
+int directory_copy(char *src_path, char *dst_path);
+
+
+
 /* ide.c */
 void ide_read(u_int diskno, u_int secno, void *dst, u_int nsecs);
 void ide_write(u_int diskno, u_int secno, void *src, u_int nsecs);

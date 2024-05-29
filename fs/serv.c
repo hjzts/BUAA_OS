@@ -39,6 +39,19 @@ struct Open opentab[MAXOPEN];
  */
 #define REQVA 0x0ffff000
 
+
+void serve_copy(u_int envid, struct Fsreq_copy *rq){
+   // Lab 5-2-Exam: Your code here. (6/6)
+       // Step 1: Remove the file specified in 'rq' using 'file_remove' and store its return value.
+    int r;
+    /* Exercise 5.11: Your code here. (1/2) */
+    r = directory_copy(rq->req_src_path,rq->req_dst_path);
+    // Step 2: Respond the return value to the caller 'envid' using 'ipc_send'.
+    /* Exercise 5.11: Your code here. (2/2) */
+    ipc_send(envid, r, 0, 0);
+}
+
+
 /*
  * Overview:
  *  Set up open file table and connect it with the file cache.
@@ -356,6 +369,7 @@ void* serve_table[MAX_FSREQNO] = {
     [FSREQ_DIRTY] = serve_dirty,
     [FSREQ_REMOVE] = serve_remove,
     [FSREQ_SYNC] = serve_sync,
+    [FSREQ_COPY]=serve_copy,
 };
 
 /*
