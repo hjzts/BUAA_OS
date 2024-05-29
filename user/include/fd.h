@@ -33,9 +33,15 @@ struct Dev {
 
 // file descriptor
 struct Fd {
-	u_int fd_dev_id;
-	u_int fd_offset;
-	u_int fd_omode;
+	u_int fd_dev_id;	// 外设的id
+	// 用户是用fd.c的用户接口是，不同的dev_id会调取不同的文件服务函数
+	// fd_dev_id的取值可以是devfile.dev_id "f"  或者是 devcons.dev_id "c"
+	u_int fd_offset;	// 读写的偏移量
+	// 在file_read、file_write会改变这个偏移量
+	// 在seek()时也会修改
+	// offset会被用来找起始filebno文件块号。
+	u_int fd_omode;		// 打开方式，包括只读、只写、读写
+	// serve_open是会进行修改，read和write时会用到
 };
 
 // State
@@ -47,10 +53,12 @@ struct Stat {
 };
 
 // file descriptor + file
+// 为了让Fd*类型的结构体可以存储更多信息，常常用来强转
 struct Filefd {
-	struct Fd f_fd;
-	u_int f_fileid;
-	struct File f_file;
+	struct Fd f_fd;		// file descriptor 文件描述符
+	u_int f_fileid;		// 文件的id
+	// 会用来索引opentab[]中对应的open控制块
+	struct File f_file;	// 这个文件描述符对应的文件控制块
 };
 
 int fd_alloc(struct Fd **fd);

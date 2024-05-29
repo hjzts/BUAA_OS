@@ -511,8 +511,10 @@ int sys_write_dev(u_int va, u_int pa, u_int len)
     if (is_illegal_va_range(va, len))
         return -E_INVAL;
 
+    // pa + len 是不会被写入的
     // if (((pa >= 0x180003f8) && (pa + len < 0x18000418)) || ((pa >= 0x180001f0) && (pa + len < 0x180001f8)))
     if (((pa >= 0x180003f8) && (pa + len <= 0x18000418)) || ((pa >= 0x180001f0) && (pa + len <= 0x180001f8))) {
+        // memcpy(KSEG1 + pa, va, len);
         switch (len) {
         case 1:
             iowrite8((uint8_t)(*(uint8_t*)va), pa);
@@ -563,6 +565,7 @@ int sys_read_dev(u_int va, u_int pa, u_int len)
 
     // if (((pa >= 0x180003f8) && (pa + len < 0x18000418)) || ((pa >= 0x180001f0) && (pa + len < 0x180001f8)))
     if (((pa >= 0x180003f8) && (pa + len <= 0x18000418)) || ((pa >= 0x180001f0) && (pa + len <= 0x180001f8))) {
+        // memcpy(va, KSEG1 + pa, len);
         switch (len) {
         case 1:
             *(uint8_t*)va = ioread8(pa);

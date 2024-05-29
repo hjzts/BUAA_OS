@@ -259,6 +259,7 @@ int alloc_block(void)
 
     // Step 2: map this block into memory.
     if ((r = map_block(bno)) < 0) {
+        // 这已经找到了一个磁盘块，但是映射失败了，所以需要释放这个磁盘块
         free_block(bno);
         return r;
     }
@@ -448,7 +449,7 @@ int file_map_block(struct File* f, u_int filebno, u_int* diskbno, u_int alloc)
         return r;
     }
 
-    // Step 2: if the block not exists, and create is set, alloc one.
+    // Step 2: if the block not exists, and create(alloc) is set, alloc one.
     if (*ptr == 0) {
         if (alloc == 0) {
             return -E_NOT_FOUND;
@@ -566,6 +567,7 @@ int dir_lookup(struct File* dir, char* name, struct File** file)
 // Overview:
 //  Alloc a new File structure under specified directory. Set *file
 //  to point at a free File structure in dir.
+//  在dir目录下创建一个文件控制块
 int dir_alloc_file(struct File* dir, struct File** file)
 {
     int r;
