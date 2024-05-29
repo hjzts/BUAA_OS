@@ -800,6 +800,7 @@ void file_flush(struct File* f)
     nblocks = ROUND(f->f_size, BLOCK_SIZE) / BLOCK_SIZE;
 
     for (bno = 0; bno < nblocks; bno++) {
+        // 把得到的磁盘块的初始位置的指针存到diskno里面
         if ((r = file_map_block(f, bno, &diskno, 0)) < 0) {
             continue;
         }
@@ -844,7 +845,7 @@ int file_remove(char* path)
         return r;
     }
 
-    // Step 2: truncate it's size to zero.
+    // Step 2: truncate 截短 it's size to zero.
     file_truncate(f, 0);
 
     // Step 3: clear it's name.
