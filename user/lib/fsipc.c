@@ -19,12 +19,28 @@ u_char fsipcbuf[PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
 // Returns:
 //  0 if successful,
 //  < 0 on failure.
-static int fsipc(u_int type, void* fsreq, void* dstva, u_int* perm)
+static int fsipc(u_int type, void *fsreq, void *dstva, u_int *perm)
 {
     u_int whom;
     // Our file system server must be the 2nd env.
     ipc_send(envs[1].env_id, type, fsreq, PTE_D);
+
     return ipc_recv(&whom, dstva, perm);
+}
+
+// 在 user/lib/fsipc.c 中仿照现有 fsipc 请求实现 fsipc_chmod
+int fsipc_chmod(const char *path, u_int mode, int type)
+{
+    size_t len = strlen(path);
+    if (len == 0 || len > MAXPATHLEN)
+        return -E_BAD_PATH;
+    // Step 2: Use 'fsipcbuf' as a 'struct Fsreq_remove'.
+    struct Fsreq_chmod *req = (struct Fsreq_chmod *)fsipcbuf;
+    strcpy((char *)req->req_path, path);
+    req->req_mode = mode;
+    req->req_type = type;
+    
+    return fsipc(FSREQ_CHMOD, req, 0,0);
 }
 
 // Overview:
@@ -34,20 +50,22 @@ static int fsipc(u_int type, void* fsreq, void* dstva, u_int* perm)
 // Returns:
 //  0 on success,
 //  < 0 on failure.
-int fsipc_open(const char* path, u_int omode, struct Fd* fd)
+int fsipc_open(const char *path, u_int omode, struct Fd *fd)
 {
     u_int perm;
-    struct Fsreq_open* req;
+    struct Fsreq_open *req;
 
-    req = (struct Fsreq_open*)fsipcbuf;
+    req = (struct Fsreq_open *)fsipcbuf;
 
     // The path is too long.
-    if (strlen(path) >= MAXPATHLEN) {
+    if (strlen(path) >= MAXPATHLEN)
+    {
         return -E_BAD_PATH;
     }
 
-    strcpy((char*)req->req_path, path);
+    strcpy((char *)req->req_path, path);
     req->req_omode = omode;
+
     return fsipc(FSREQ_OPEN, req, fd, &perm);
 }
 
@@ -59,21 +77,23 @@ int fsipc_open(const char* path, u_int omode, struct Fd* fd)
 // Returns:
 //  0 on success,
 //  < 0 on failure.
-int fsipc_map(u_int fileid, u_int offset, void* dstva)
+int fsipc_map(u_int fileid, u_int offset, void *dstva)
 {
     int r;
     u_int perm;
-    struct Fsreq_map* req;
+    struct Fsreq_map *req;
 
-    req = (struct Fsreq_map*)fsipcbuf;
+    req = (struct Fsreq_map *)fsipcbuf;
     req->req_fileid = fileid;
     req->req_offset = offset;
 
-    if ((r = fsipc(FSREQ_MAP, req, dstva, &perm)) < 0) {
+    if ((r = fsipc(FSREQ_MAP, req, dstva, &perm)) < 0)
+    {
         return r;
     }
 
-    if ((perm & ~(PTE_D | PTE_LIBRARY)) != (PTE_V)) {
+    if ((perm & ~(PTE_D | PTE_LIBRARY)) != (PTE_V))
+    {
         user_panic("fsipc_map: unexpected permissions %08x for dstva %08x", perm, dstva);
     }
 
@@ -84,9 +104,9 @@ int fsipc_map(u_int fileid, u_int offset, void* dstva)
 //  Make a set-file-size request to the file server.
 int fsipc_set_size(u_int fileid, u_int size)
 {
-    struct Fsreq_set_size* req;
+    struct Fsreq_set_size *req;
 
-    req = (struct Fsreq_set_size*)fsipcbuf;
+    req = (struct Fsreq_set_size *)fsipcbuf;
     req->req_fileid = fileid;
     req->req_size = size;
     return fsipc(FSREQ_SET_SIZE, req, 0, 0);
@@ -96,9 +116,9 @@ int fsipc_set_size(u_int fileid, u_int size)
 //  Make a file-close request to the file server. After this the fileid is invalid.
 int fsipc_close(u_int fileid)
 {
-    struct Fsreq_close* req;
+    struct Fsreq_close *req;
 
-    req = (struct Fsreq_close*)fsipcbuf;
+    req = (struct Fsreq_close *)fsipcbuf;
     req->req_fileid = fileid;
     return fsipc(FSREQ_CLOSE, req, 0, 0);
 }
@@ -107,9 +127,9 @@ int fsipc_close(u_int fileid)
 //  Ask the file server to mark a particular file block dirty.
 int fsipc_dirty(u_int fileid, u_int offset)
 {
-    struct Fsreq_dirty* req;
+    struct Fsreq_dirty *req;
 
-    req = (struct Fsreq_dirty*)fsipcbuf;
+    req = (struct Fsreq_dirty *)fsipcbuf;
     req->req_fileid = fileid;
     req->req_offset = offset;
     return fsipc(FSREQ_DIRTY, req, 0, 0);
@@ -117,7 +137,7 @@ int fsipc_dirty(u_int fileid, u_int offset)
 
 // Overview:
 //  Ask the file server to delete a file, given its path.
-int fsipc_remove(const char* path)
+int fsipc_remove(const char *path)
 {
     // Step 1: Check the length of 'path' using 'strlen'.
     // If the length of path is 0 or larger than 'MAXPATHLEN', return -E_BAD_PATH.
@@ -126,12 +146,12 @@ int fsipc_remove(const char* path)
     if (len == 0 || len > MAXPATHLEN)
         return -E_BAD_PATH;
     // Step 2: Use 'fsipcbuf' as a 'struct Fsreq_remove'.
-    struct Fsreq_remove* req = (struct Fsreq_remove*)fsipcbuf;
+    struct Fsreq_remove *req = (struct Fsreq_remove *)fsipcbuf;
 
     // Step 3: Copy 'path' into the path in 'req' using 'strcpy'.
     /* Exercise 5.12: Your code here. (2/3) */
-    strcpy((char*)req->req_path, path);
-	// 直接copy也行
+    strcpy((char *)req->req_path, path);
+    // 直接copy也行
     // strcpy(req->req_path, path);
 
     // Step 4: Send request to the server using 'fsipc'.

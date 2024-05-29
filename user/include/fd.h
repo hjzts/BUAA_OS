@@ -50,6 +50,7 @@ struct Stat {
 	u_int st_size;
 	u_int st_isdir;
 	struct Dev *st_dev;
+	u_int st_mode;
 };
 
 // file descriptor + file

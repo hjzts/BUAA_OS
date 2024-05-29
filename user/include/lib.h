@@ -39,6 +39,10 @@ void _user_halt(const char *, int, const char *, ...) __attribute__((noreturn));
 		}                                                                                  \
 	} while (0)
 
+
+int fsipc_chmod(const char *, u_int, int);
+int chmod(const char *path, u_int mode, int type);
+
 /// fork, spawn
 int spawn(char *prog, char **argv);
 int spawnl(char *prot, char *args, ...);

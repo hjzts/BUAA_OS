@@ -23,6 +23,14 @@
 
 #define FILE_STRUCT_SIZE 256
 
+#define FMODE_R 0x4
+#define FMODE_W 0x2
+#define FMODE_X 0x1
+#define FMODE_RW 0x6
+#define FMODE_ALL 0x7
+
+#define STMODE2FMODE(st_mode) (((st_mode) >> 6) & FMODE_ALL)
+
 struct File {
     char f_name[MAXNAMELEN]; // filename		文件名称，最大长度为128
     uint32_t f_size; // file size in bytes	文件的大小，单位为字节
@@ -32,7 +40,8 @@ struct File {
     uint32_t f_indirect; // 文件大于40KB时，需要用到间接指针。
 	// ((int*)(disk[dirf->f_indirect].data))[i]
     struct File* f_dir; // the pointer to the dir where this file is in, valid only in memory.指向文件所属的文件目录
-    char f_pad[FILE_STRUCT_SIZE - MAXNAMELEN - (3 + NDIRECT) * 4 - sizeof(void*)];
+    uint32_t f_mode;
+    char f_pad[FILE_STRUCT_SIZE - MAXNAMELEN - (4 + NDIRECT) * 4 - sizeof(void*)];
     //	是为了让整数个文件结构体占用一个磁盘块，填充结构体中剩下的字节
 } __attribute__((aligned(4), packed));
 

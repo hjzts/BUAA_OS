@@ -22,11 +22,12 @@ typedef struct File File;
 
 #define NBLOCK 1024 // The number of blocks in the disk.
 uint32_t nbitblock; // the number of bitmap blocks.
-uint32_t nextbno; // next availiable block.
+uint32_t nextbno;   // next availiable block.
 
 struct Super super; // super block.
 
-enum {
+enum
+{
     BLOCK_FREE = 0,
     BLOCK_BOOT = 1,
     BLOCK_BMAP = 2,
@@ -36,16 +37,17 @@ enum {
     BLOCK_INDEX = 6,
 };
 
-struct Block {
+struct Block
+{
     uint8_t data[BLOCK_SIZE];
     uint32_t type;
 } disk[NBLOCK];
 
 // reverse: mutually transform between little endian and big endian.
-void reverse(uint32_t* p)
+void reverse(uint32_t *p)
 {
-    uint8_t* x = (uint8_t*)p;
-    uint32_t y = *(uint32_t*)x;
+    uint8_t *x = (uint8_t *)p;
+    uint32_t y = *(uint32_t *)x;
     x[3] = y & 0xFF;
     x[2] = (y >> 8) & 0xFF;
     x[1] = (y >> 16) & 0xFF;
@@ -53,40 +55,47 @@ void reverse(uint32_t* p)
 }
 
 // reverse_block: reverse proper filed in a block.
-void reverse_block(struct Block* b)
+void reverse_block(struct Block *b)
 {
     int i, j;
-    struct Super* s;
+    struct Super *s;
     struct File *f, *ff;
-    uint32_t* u;
+    uint32_t *u;
 
-    switch (b->type) {
+    switch (b->type)
+    {
     case BLOCK_FREE:
     case BLOCK_BOOT:
         break; // do nothing.
     case BLOCK_SUPER:
-        s = (struct Super*)b->data;
+        s = (struct Super *)b->data;
         reverse(&s->s_magic);
         reverse(&s->s_nblocks);
 
         ff = &s->s_root;
         reverse(&ff->f_size);
         reverse(&ff->f_type);
-        for (i = 0; i < NDIRECT; ++i) {
+        for (i = 0; i < NDIRECT; ++i)
+        {
             reverse(&ff->f_direct[i]);
         }
         reverse(&ff->f_indirect);
         break;
     case BLOCK_FILE:
-        f = (struct File*)b->data;
-        for (i = 0; i < FILE2BLK; ++i) {
+        f = (struct File *)b->data;
+        for (i = 0; i < FILE2BLK; ++i)
+        {
             ff = f + i;
-            if (ff->f_name[0] == 0) {
+            if (ff->f_name[0] == 0)
+            {
                 break;
-            } else {
+            }
+            else
+            {
                 reverse(&ff->f_size);
                 reverse(&ff->f_type);
-                for (j = 0; j < NDIRECT; ++j) {
+                for (j = 0; j < NDIRECT; ++j)
+                {
                     reverse(&ff->f_direct[j]);
                 }
                 reverse(&ff->f_indirect);
@@ -95,8 +104,9 @@ void reverse_block(struct Block* b)
         break;
     case BLOCK_INDEX:
     case BLOCK_BMAP:
-        u = (uint32_t*)b->data;
-        for (i = 0; i < BLOCK_SIZE / 4; ++i) {
+        u = (uint32_t *)b->data;
+        for (i = 0; i < BLOCK_SIZE / 4; ++i)
+        {
             reverse(u + i);
         }
         break;
@@ -119,15 +129,18 @@ void init_disk()
     nextbno = 2 + nbitblock;
 
     // Step 2: Initialize bitmap blocks.
-    for (i = 0; i < nbitblock; ++i) {
+    for (i = 0; i < nbitblock; ++i)
+    {
         disk[2 + i].type = BLOCK_BMAP;
     }
     // 将位图中的每个数据的每个位都标志为1，表示空闲。一个data是uint8_t，有8个bit，能够表示8个数据块的使用情况
-    for (i = 0; i < nbitblock; ++i) {
+    for (i = 0; i < nbitblock; ++i)
+    {
         memset(disk[2 + i].data, 0xff, BLOCK_SIZE);
     }
     // 说明表示位图的数据块中有剩余的没被使用的部分
-    if (NBLOCK != nbitblock * BLOCK_SIZE_BIT) {
+    if (NBLOCK != nbitblock * BLOCK_SIZE_BIT)
+    {
         // diff表示已经使用的部分
         diff = NBLOCK % BLOCK_SIZE_BIT / 8;
         // 把没被使用的部分设置为0，不存在的块不能够使用！
@@ -139,6 +152,7 @@ void init_disk()
     super.s_magic = FS_MAGIC;
     super.s_nblocks = NBLOCK;
     super.s_root.f_type = FTYPE_DIR;
+    super.s_root.f_mode = FMODE_ALL;
     strcpy(super.s_root.f_name, "/");
 }
 
@@ -154,13 +168,14 @@ void flush_bitmap()
 {
     int i;
     // update bitmap, mark all bit where corresponding block is used.
-    for (i = 0; i < nextbno; ++i) {
-        ((uint32_t*)disk[2 + i / BLOCK_SIZE_BIT].data)[(i % BLOCK_SIZE_BIT) / 32] &= ~(1 << (i % 32));
+    for (i = 0; i < nextbno; ++i)
+    {
+        ((uint32_t *)disk[2 + i / BLOCK_SIZE_BIT].data)[(i % BLOCK_SIZE_BIT) / 32] &= ~(1 << (i % 32));
     }
 }
 
 // Finish all work, dump block array into physical file.
-void finish_fs(char* name)
+void finish_fs(char *name)
 {
     int fd, i;
 
@@ -169,7 +184,8 @@ void finish_fs(char* name)
 
     // Dump data in `disk` to target image file.
     fd = open(name, O_RDWR | O_CREAT, 0666);
-    for (i = 0; i < 1024; ++i) {
+    for (i = 0; i < 1024; ++i)
+    {
 #ifdef CONFIG_REVERSE_ENDIAN
         reverse_block(disk + i);
 #endif
@@ -182,23 +198,27 @@ void finish_fs(char* name)
 }
 
 // Save block link.
-void save_block_link(struct File* f, int nblk, int bno)
+void save_block_link(struct File *f, int nblk, int bno)
 {
     assert(nblk < NINDIRECT); // if not, file is too large !
 
-    if (nblk < NDIRECT) {
+    if (nblk < NDIRECT)
+    {
         f->f_direct[nblk] = bno;
-    } else {
-        if (f->f_indirect == 0) {
+    }
+    else
+    {
+        if (f->f_indirect == 0)
+        {
             // create new indirect block.
             f->f_indirect = next_block(BLOCK_INDEX);
         }
-        ((uint32_t*)(disk[f->f_indirect].data))[nblk] = bno;
+        ((uint32_t *)(disk[f->f_indirect].data))[nblk] = bno;
     }
 }
 
 // Make new block contains link to files in a directory.
-int make_link_block(struct File* dirf, int nblk)
+int make_link_block(struct File *dirf, int nblk)
 {
     int bno = next_block(BLOCK_FILE);
     save_block_link(dirf, nblk, bno);
@@ -219,29 +239,34 @@ int make_link_block(struct File* dirf, int nblk)
 // Hint:
 //  Use 'make_link_block' to allocate a new block for the directory if there are no existing unused
 //  'File's.
-struct File* create_file(struct File* dirf)
+struct File *create_file(struct File *dirf)
 {
     // 首先确定了dirf->f_size，也就是的文件的大小
     // 可以确定需要多少磁盘块，每一个都需要对应到磁盘上的一个磁盘块
     int nblk = dirf->f_size / BLOCK_SIZE;
 
     // Step 1: Iterate through all existing blocks in the directory.
-    for (int i = 0; i < nblk; ++i) {
+    for (int i = 0; i < nblk; ++i)
+    {
         int bno; // the block number
         // If the block number is in the range of direct pointers (NDIRECT), get the 'bno'
         // directly from 'f_direct'. Otherwise, access the indirect block on 'disk' and get
         // the 'bno' at the index.
         /* Exercise 5.5: Your code here. (1/3) */
-        if (i < NDIRECT) {
+        if (i < NDIRECT)
+        {
             bno = dirf->f_direct[i];
-        } else {
-            bno = ((int*)(disk[dirf->f_indirect].data))[i];
+        }
+        else
+        {
+            bno = ((int *)(disk[dirf->f_indirect].data))[i];
         }
         // Get the directory block using the block number.
-        struct File* blk = (struct File*)(disk[bno].data);
+        struct File *blk = (struct File *)(disk[bno].data);
 
         // Iterate迭代 through all 'File's in the directory block.
-        for (struct File* f = blk; f < blk + FILE2BLK; ++f) {
+        for (struct File *f = blk; f < blk + FILE2BLK; ++f)
+        {
             // If the first byte of the file name is null, the 'File' is unused.
             // Return a pointer to the unused 'File'.
             /* Exercise 5.5: Your code here. (2/3) */
@@ -255,28 +280,36 @@ struct File* create_file(struct File* dirf)
     // and return a pointer to the new block on 'disk'.
     /* Exercise 5.5: Your code here. (3/3) */
     int bno = make_link_block(dirf, nblk);
-    return (struct File*)(disk[bno].data);
+    return (struct File *)(disk[bno].data);
     // return NULL;
 }
 
 // Write file to disk under specified dir.
-void write_file(struct File* dirf, const char* path)
+void write_file(struct File *dirf, const char *path)
 {
     int iblk = 0, r = 0, n = sizeof(disk[0].data);
-    struct File* target = create_file(dirf);
+    struct File *target = create_file(dirf);
+
+    struct stat stat_buf;
+    assert(stat(path, &stat_buf) == 0);
+    dirf->f_mode = STMODE2FMODE(stat_buf.st_mode);
 
     /* in case `create_file` is't filled */
-    if (target == NULL) {
+    if (target == NULL)
+    {
         return;
     }
 
     int fd = open(path, O_RDONLY);
 
     // Get file name with no path prefix.
-    const char* fname = strrchr(path, '/');
-    if (fname) {
+    const char *fname = strrchr(path, '/');
+    if (fname)
+    {
         fname++;
-    } else {
+    }
+    else
+    {
         fname = path;
     }
     strcpy(target->f_name, fname);
@@ -286,7 +319,8 @@ void write_file(struct File* dirf, const char* path)
 
     // Start reading file.
     lseek(fd, 0, SEEK_SET);
-    while ((r = read(fd, disk[nextbno].data, n)) > 0) {
+    while ((r = read(fd, disk[nextbno].data, n)) > 0)
+    {
         save_block_link(target, iblk++, next_block(BLOCK_DATA));
     }
     close(fd); // Close file descriptor.
@@ -301,28 +335,41 @@ void write_file(struct File* dirf, const char* path)
 //  We ASSUME that this funcion will never fail
 
 #define DT_DIR 4
-void write_directory(struct File* dirf, char* path)
+void write_directory(struct File *dirf, char *path)
 {
-    DIR* dir = opendir(path);
-    if (dir == NULL) {
+
+    struct stat stat_buf;
+    assert(stat(path, &stat_buf) == 0);
+    dirf->f_mode = STMODE2FMODE(stat_buf.st_mode);
+
+
+    DIR *dir = opendir(path);
+    if (dir == NULL)
+    {
         perror("opendir");
         return;
     }
-    struct File* pdir = create_file(dirf);
+    struct File *pdir = create_file(dirf);
     strncpy(pdir->f_name, basename(path), MAXNAMELEN - 1);
-    if (pdir->f_name[MAXNAMELEN - 1] != 0) {
+    if (pdir->f_name[MAXNAMELEN - 1] != 0)
+    {
         fprintf(stderr, "file name is too long: %s\n", path);
         // File already created, no way back from here.
         exit(1);
     }
     pdir->f_type = FTYPE_DIR;
-    for (struct dirent* e; (e = readdir(dir)) != NULL;) {
-        if (strcmp(e->d_name, ".") != 0 && strcmp(e->d_name, "..") != 0) {
-            char* buf = malloc(strlen(path) + strlen(e->d_name) + 2);
+    for (struct dirent *e; (e = readdir(dir)) != NULL;)
+    {
+        if (strcmp(e->d_name, ".") != 0 && strcmp(e->d_name, "..") != 0)
+        {
+            char *buf = malloc(strlen(path) + strlen(e->d_name) + 2);
             sprintf(buf, "%s/%s", path, e->d_name);
-            if (e->d_type == DT_DIR) {
+            if (e->d_type == DT_DIR)
+            {
                 write_directory(pdir, buf);
-            } else {
+            }
+            else
+            {
                 write_file(pdir, buf);
             }
             free(buf);
@@ -331,28 +378,35 @@ void write_directory(struct File* dirf, char* path)
     closedir(dir);
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     static_assert(sizeof(struct File) == FILE_STRUCT_SIZE);
     init_disk();
 
-    if (argc < 3) {
+    if (argc < 3)
+    {
         fprintf(stderr, "Usage: fsformat <img-file> [files or directories]...\n");
         exit(1);
     }
 
-    for (int i = 2; i < argc; i++) {
-        char* name = argv[i];
+    for (int i = 2; i < argc; i++)
+    {
+        char *name = argv[i];
         struct stat stat_buf;
         int r = stat(name, &stat_buf);
         assert(r == 0);
-        if (S_ISDIR(stat_buf.st_mode)) {
+        if (S_ISDIR(stat_buf.st_mode))
+        {
             printf("writing directory '%s' recursively into disk\n", name);
             write_directory(&super.s_root, name);
-        } else if (S_ISREG(stat_buf.st_mode)) {
+        }
+        else if (S_ISREG(stat_buf.st_mode))
+        {
             printf("writing regular file '%s' into disk\n", name);
             write_file(&super.s_root, name);
-        } else {
+        }
+        else
+        {
             fprintf(stderr, "'%s' has illegal file mode %o\n", name, stat_buf.st_mode);
             exit(2);
         }
