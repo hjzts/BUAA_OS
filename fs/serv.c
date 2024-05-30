@@ -191,7 +191,6 @@ void serve_open(u_int envid, struct Fsreq_open* rq)
     }
     debugk_user("f's address is %x after file_create", f);
 
-
     // Open the file.
     if ((r = file_open(rq->req_path, &f)) < 0) {
         ipc_send(envid, r, 0, 0);
@@ -204,7 +203,8 @@ void serve_open(u_int envid, struct Fsreq_open* rq)
             // ((rq->req_omode == O_WRONLY)) ||
             ((rq->req_omode == O_WRONLY) && (f->f_mode & FMODE_W)) ||
             // ((rq->req_omode == O_RDWR))))
-            ((rq->req_omode == O_RDWR) && ((f->f_mode & FMODE_R) && (f->f_mode & FMODE_W))))) {
+            // ((rq->req_omode == O_RDWR) && ((f->f_mode & FMODE_R) && (f->f_mode & FMODE_W))))) {
+            ((rq->req_omode == O_RDWR) && (f->f_mode & FMODE_RW == FMODE_RW)))) {
         debugk_user("req_nmode is %d, f_mode is %d in function serve_open", rq->req_omode, f->f_mode);
         debugf("req_nmode is %d, f_mode is %d in function serve_open", rq->req_omode, f->f_mode);
         ipc_send(envid, -E_PERM_DENY, 0, 0);
