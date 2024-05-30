@@ -38,7 +38,7 @@ int syscall_set_tlb_mod_entry(u_int envid, void (*func)(struct Trapframe*))
 
 int syscall_mem_alloc(u_int envid, void* va, u_int perm)
 {
-    debugk_user("function syscall_mem_alloc is called");
+    // debugk_user("function syscall_mem_alloc is called");
     return msyscall(SYS_mem_alloc, envid, va, perm);
 }
 
@@ -96,7 +96,7 @@ int syscall_write_dev(void* va, u_int dev, u_int size)
 int syscall_read_dev(void* va, u_int dev, u_int size)
 {
     /* Exercise 5.2: Your code here. (2/2) */
-    debugk_user("function syscall_read_dev in called in user/lib/syscall_lib.c");
+    // debugk_user("function syscall_read_dev in called in user/lib/syscall_lib.c");
     // if (!(va == 0x7f3fdfcc && dev == 0x180003fd && size == 1)) {
     //     debugk_user("syscall_read_dev va is %x, pa is %x, len is %x", va, dev, size);
     // }

@@ -290,11 +290,8 @@ void write_file(struct File *dirf, const char *path)
     int iblk = 0, r = 0, n = sizeof(disk[0].data);
     struct File *target = create_file(dirf);
 
-    struct stat stat_buf;
-    assert(stat(path, &stat_buf) == 0);
-    dirf->f_mode = STMODE2FMODE(stat_buf.st_mode);
 
-    /* in case `create_file` is't filled */
+    /* in case `create_file` isn't filled */
     if (target == NULL)
     {
         return;
@@ -313,6 +310,10 @@ void write_file(struct File *dirf, const char *path)
         fname = path;
     }
     strcpy(target->f_name, fname);
+    struct stat stat_buf;
+    assert(stat(path, &stat_buf) == 0);
+    target->f_mode = STMODE2FMODE(stat_buf.st_mode);
+    // target->f_mode = 7;
 
     target->f_size = lseek(fd, 0, SEEK_END);
     target->f_type = FTYPE_REG;
@@ -338,11 +339,6 @@ void write_file(struct File *dirf, const char *path)
 void write_directory(struct File *dirf, char *path)
 {
 
-    struct stat stat_buf;
-    assert(stat(path, &stat_buf) == 0);
-    dirf->f_mode = STMODE2FMODE(stat_buf.st_mode);
-
-
     DIR *dir = opendir(path);
     if (dir == NULL)
     {
@@ -358,6 +354,11 @@ void write_directory(struct File *dirf, char *path)
         exit(1);
     }
     pdir->f_type = FTYPE_DIR;
+
+    struct stat stat_buf;
+    assert(stat(path, &stat_buf) == 0);
+    pdir->f_mode = STMODE2FMODE(stat_buf.st_mode);
+
     for (struct dirent *e; (e = readdir(dir)) != NULL;)
     {
         if (strcmp(e->d_name, ".") != 0 && strcmp(e->d_name, "..") != 0)

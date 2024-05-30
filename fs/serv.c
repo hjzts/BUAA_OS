@@ -15,12 +15,11 @@
  * o_mode: open mode
  * o_ff: va of filefd page
  */
-struct Open
-{
-    struct File *o_file;
+struct Open {
+    struct File* o_file;
     u_int o_fileid;
     int o_mode;
-    struct Filefd *o_ff;
+    struct Filefd* o_ff;
 };
 
 /*
@@ -41,35 +40,26 @@ struct Open opentab[MAXOPEN];
 #define REQVA 0x0ffff000
 
 // serve_chmod
-void serve_chmod(u_int envid, struct Fsreq_chmod *rq)
+void serve_chmod(u_int envid, struct Fsreq_chmod* rq)
 {
     int r;
-    struct File *f;
-    if ((r = file_create(rq->req_path, &f)) < 0 && r != -E_FILE_EXISTS)
-    {
+    struct File* f;
+    if ((r = file_create(rq->req_path, &f)) < 0 && r != -E_FILE_EXISTS) {
         ipc_send(envid, r, 0, 0);
         return;
     }
     // Open the file.
-    if ((r = file_open(rq->req_path, &f)) < 0)
-    {
+    if ((r = file_open(rq->req_path, &f)) < 0) {
         ipc_send(envid, r, 0, 0);
         return;
     }
-    if (rq->req_type == 0)
-    {
+    if (rq->req_type == 0) {
         f->f_mode = rq->req_mode;
-    }
-    else if (rq->req_type == 1)
-    {
+    } else if (rq->req_type == 1) {
         f->f_mode |= rq->req_mode;
-    }
-    else if (rq->req_type == 2)
-    {
+    } else if (rq->req_type == 2) {
         f->f_mode &= ~(rq->req_mode);
-    }
-    else
-    {
+    } else {
         return -114514;
     }
     // f->f_type = rq->req_type;
@@ -90,10 +80,9 @@ void serve_init(void)
     va = FILEVA;
 
     // Initial array opentab.
-    for (i = 0; i < MAXOPEN; i++)
-    {
+    for (i = 0; i < MAXOPEN; i++) {
         opentab[i].o_fileid = i;
-        opentab[i].o_ff = (struct Filefd *)va;
+        opentab[i].o_ff = (struct Filefd*)va;
         va += BLOCK_SIZE;
     }
 }
@@ -106,23 +95,20 @@ void serve_init(void)
  * Return:
  * 0 on success, - E_MAX_OPEN on error
  */
-int open_alloc(struct Open **o)
+int open_alloc(struct Open** o)
 {
     int i, r;
 
     // Find an available open-file table entry
-    for (i = 0; i < MAXOPEN; i++)
-    {
-        switch (pageref(opentab[i].o_ff))
-        {
+    for (i = 0; i < MAXOPEN; i++) {
+        switch (pageref(opentab[i].o_ff)) {
         case 0:
-            if ((r = syscall_mem_alloc(0, opentab[i].o_ff, PTE_D | PTE_LIBRARY)) < 0)
-            {
+            if ((r = syscall_mem_alloc(0, opentab[i].o_ff, PTE_D | PTE_LIBRARY)) < 0) {
                 return r;
             }
         case 1:
             *o = &opentab[i];
-            memset((void *)opentab[i].o_ff, 0, BLOCK_SIZE);
+            memset((void*)opentab[i].o_ff, 0, BLOCK_SIZE);
             return (*o)->o_fileid;
         }
     }
@@ -144,19 +130,17 @@ int open_alloc(struct Open **o)
  * 0 on success, -E_INVAL on error (fileid illegal or file not open by envid)
  *
  */
-int open_lookup(u_int envid, u_int fileid, struct Open **po)
+int open_lookup(u_int envid, u_int fileid, struct Open** po)
 {
-    struct Open *o;
+    struct Open* o;
 
-    if (fileid >= MAXOPEN)
-    {
+    if (fileid >= MAXOPEN) {
         return -E_INVAL;
     }
 
     o = &opentab[fileid];
 
-    if (pageref(o->o_ff) <= 1)
-    {
+    if (pageref(o->o_ff) <= 1) {
         return -E_INVAL;
     }
 
@@ -187,59 +171,63 @@ int open_lookup(u_int envid, u_int fileid, struct Open **po)
  * if Success, return the FileFd page to the caller by ipc_send,
  * Otherwise, use ipc_send to return the error value to the caller.
  */
-void serve_open(u_int envid, struct Fsreq_open *rq)
+void serve_open(u_int envid, struct Fsreq_open* rq)
 {
-    struct File *f;
-    struct Filefd *ff;
+    struct File* f;
+    struct Filefd* ff;
     int r;
-    struct Open *o;
+    struct Open* o;
 
     // Find a file id.
-    if ((r = open_alloc(&o)) < 0)
-    {
+    if ((r = open_alloc(&o)) < 0) {
         ipc_send(envid, r, 0, 0);
         return;
     }
 
-    if ( (r = file_create(rq->req_path, &f)) < 0 && r != -E_FILE_EXISTS && (rq->req_omode & O_CREAT))
-    {
+    if ((rq->req_omode & O_CREAT) && (r = file_create(rq->req_path, &f)) < 0 && r != -E_FILE_EXISTS) {
+        debugk_user("--finish serve_open after file_create fail");
         ipc_send(envid, r, 0, 0);
         return;
     }
+    debugk_user("f's address is %x after file_create", f);
+
+    // if (!(
+    //         ((rq->req_omode == O_RDONLY) && (f->f_mode & 4)) || ((rq->req_omode == O_WRONLY) && (f->f_mode & 2)) || ((rq->req_omode == O_RDWR) && (f->f_mode >= 6)))) {
+    //     ipc_send(envid, -E_PERM_DENY, 0, 0);
+    //     return;
+    // }
+    // debugk_user("f_mode is %d in function serve_open", f->f_mode);
 
     // Open the file.
-    if ((r = file_open(rq->req_path, &f)) < 0)
-    {
+    if ((r = file_open(rq->req_path, &f)) < 0) {
         ipc_send(envid, r, 0, 0);
         return;
     }
-    
+    debugk_user("f's address is %x after file_open", f);
     if (!(
             // ((rq->req_omode == O_RDONLY)) ||
-            ((rq->req_omode == O_RDONLY) && (f->f_mode & 4)) ||
+            ((rq->req_omode == O_RDONLY) && (f->f_mode & FMODE_R)) ||
             // ((rq->req_omode == O_WRONLY)) ||
-            ((rq->req_omode == O_WRONLY) && (f->f_mode & 2)) ||
+            ((rq->req_omode == O_WRONLY) && (f->f_mode & FMODE_W)) ||
             // ((rq->req_omode == O_RDWR))))
-            ((rq->req_omode == O_RDWR) && (f->f_mode >= 6))
-            ))
-    {
-        debugf("%d",f->f_mode);
+            ((rq->req_omode == O_RDWR) && (f->f_mode & FMODE_RW)))) {
+        debugk_user("req_nmode is %d, f_mode is %d in function serve_open", rq->req_omode, f->f_mode);
         ipc_send(envid, -E_PERM_DENY, 0, 0);
+        return;
     }
+
     // Save the file pointer.
     o->o_file = f;
 
     // If mode include O_TRUNC, set the file size to 0
-    if (rq->req_omode & O_TRUNC)
-    {
-        if ((r = file_set_size(f, 0)) < 0)
-        {
+    if (rq->req_omode & O_TRUNC) {
+        if ((r = file_set_size(f, 0)) < 0) {
             ipc_send(envid, r, 0, 0);
         }
     }
 
     // Fill out the Filefd structure
-    ff = (struct Filefd *)o->o_ff;
+    ff = (struct Filefd*)o->o_ff;
     ff->f_file = *f;
     ff->f_fileid = o->o_fileid;
     o->o_mode = rq->req_omode;
@@ -261,23 +249,21 @@ void serve_open(u_int envid, struct Fsreq_open *rq)
  *  if Success, use ipc_send to return zero and  the block to
  *  the caller.Otherwise, return the error value to the caller.
  */
-void serve_map(u_int envid, struct Fsreq_map *rq)
+void serve_map(u_int envid, struct Fsreq_map* rq)
 {
-    struct Open *pOpen;
+    struct Open* pOpen;
     u_int filebno;
-    void *blk;
+    void* blk;
     int r;
 
-    if ((r = open_lookup(envid, rq->req_fileid, &pOpen)) < 0)
-    {
+    if ((r = open_lookup(envid, rq->req_fileid, &pOpen)) < 0) {
         ipc_send(envid, r, 0, 0);
         return;
     }
 
     filebno = rq->req_offset / BLOCK_SIZE;
 
-    if ((r = file_get_block(pOpen->o_file, filebno, &blk)) < 0)
-    {
+    if ((r = file_get_block(pOpen->o_file, filebno, &blk)) < 0) {
         ipc_send(envid, r, 0, 0);
         return;
     }
@@ -297,18 +283,16 @@ void serve_map(u_int envid, struct Fsreq_map *rq)
  * if Success, use ipc_send to return 0 to the caller. Otherwise,
  * return the error value to the caller.
  */
-void serve_set_size(u_int envid, struct Fsreq_set_size *rq)
+void serve_set_size(u_int envid, struct Fsreq_set_size* rq)
 {
-    struct Open *pOpen;
+    struct Open* pOpen;
     int r;
-    if ((r = open_lookup(envid, rq->req_fileid, &pOpen)) < 0)
-    {
+    if ((r = open_lookup(envid, rq->req_fileid, &pOpen)) < 0) {
         ipc_send(envid, r, 0, 0);
         return;
     }
 
-    if ((r = file_set_size(pOpen->o_file, rq->req_size)) < 0)
-    {
+    if ((r = file_set_size(pOpen->o_file, rq->req_size)) < 0) {
         ipc_send(envid, r, 0, 0);
         return;
     }
@@ -328,14 +312,13 @@ void serve_set_size(u_int envid, struct Fsreq_set_size *rq)
  *  if Success, use ipc_send to return 0 to the caller.Otherwise,
  *  return the error value to the caller.
  */
-void serve_close(u_int envid, struct Fsreq_close *rq)
+void serve_close(u_int envid, struct Fsreq_close* rq)
 {
-    struct Open *pOpen;
+    struct Open* pOpen;
 
     int r;
 
-    if ((r = open_lookup(envid, rq->req_fileid, &pOpen)) < 0)
-    {
+    if ((r = open_lookup(envid, rq->req_fileid, &pOpen)) < 0) {
         ipc_send(envid, r, 0, 0);
         return;
     }
@@ -355,7 +338,7 @@ void serve_close(u_int envid, struct Fsreq_close *rq)
  * Return:
  *  the result of the file_remove to the caller by ipc_send.
  */
-void serve_remove(u_int envid, struct Fsreq_remove *rq)
+void serve_remove(u_int envid, struct Fsreq_remove* rq)
 {
     // Step 1: Remove the file specified in 'rq' using 'file_remove' and store its return value.
     int r;
@@ -378,19 +361,17 @@ void serve_remove(u_int envid, struct Fsreq_remove *rq)
  *  if Success, use ipc_send to return 0 to the caller. Otherwise,
  *  return the error value to the caller.
  */
-void serve_dirty(u_int envid, struct Fsreq_dirty *rq)
+void serve_dirty(u_int envid, struct Fsreq_dirty* rq)
 {
-    struct Open *pOpen;
+    struct Open* pOpen;
     int r;
 
-    if ((r = open_lookup(envid, rq->req_fileid, &pOpen)) < 0)
-    {
+    if ((r = open_lookup(envid, rq->req_fileid, &pOpen)) < 0) {
         ipc_send(envid, r, 0, 0);
         return;
     }
 
-    if ((r = file_dirty(pOpen->o_file, rq->req_offset)) < 0)
-    {
+    if ((r = file_dirty(pOpen->o_file, rq->req_offset)) < 0) {
         ipc_send(envid, r, 0, 0);
         return;
     }
@@ -416,7 +397,7 @@ void serve_sync(u_int envid)
  * File system use this table and the request number to
  * call the corresponding serve function.
  */
-void *serve_table[MAX_FSREQNO] = {
+void* serve_table[MAX_FSREQNO] = {
     [FSREQ_OPEN] = serve_open,
     [FSREQ_MAP] = serve_map,
     [FSREQ_SET_SIZE] = serve_set_size,
@@ -440,24 +421,21 @@ void serve(void)
     u_int req, whom, perm;
     void (*func)(u_int, u_int);
 
-    for (;;)
-    {
+    for (;;) {
         perm = 0;
 
-        req = ipc_recv(&whom, (void *)REQVA, &perm);
+        req = ipc_recv(&whom, (void*)REQVA, &perm);
 
         // All requests must contain an argument page
-        if (!(perm & PTE_V))
-        {
+        if (!(perm & PTE_V)) {
             debugf("Invalid request from %08x: no argument page\n", whom);
             continue; // just leave it hanging, waiting for the next request.
         }
 
         // The request number must be valid.
-        if (req < 0 || req >= MAX_FSREQNO)
-        {
+        if (req < 0 || req >= MAX_FSREQNO) {
             debugf("Invalid request code %d from %08x\n", req, whom);
-            panic_on(syscall_mem_unmap(0, (void *)REQVA));
+            panic_on(syscall_mem_unmap(0, (void*)REQVA));
             continue;
         }
 
@@ -466,7 +444,7 @@ void serve(void)
         func(whom, REQVA);
 
         // Unmap the argument page.
-        panic_on(syscall_mem_unmap(0, (void *)REQVA));
+        panic_on(syscall_mem_unmap(0, (void*)REQVA));
     }
 }
 
