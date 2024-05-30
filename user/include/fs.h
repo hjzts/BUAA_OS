@@ -39,10 +39,16 @@ struct File {
                                 // 每个磁盘块的大小为4KB，也就是这10个直接指针能够表示最大40KB的文件
     uint32_t f_indirect; // 文件大于40KB时，需要用到间接指针。
 	// ((int*)(disk[dirf->f_indirect].data))[i]
-    struct File* f_dir; // the pointer to the dir where this file is in, valid only in memory.指向文件所属的文件目录
-    uint32_t f_mode;
-    char f_pad[FILE_STRUCT_SIZE - MAXNAMELEN - (4 + NDIRECT) * 4 - sizeof(void*)];
-    //	是为了让整数个文件结构体占用一个磁盘块，填充结构体中剩下的字节
+        struct File* f_dir; // the pointer to the dir where this file is in, valid only in memory.指向文件所属的文件目录
+    #if defined(__LP64__) || defined(_LP64)
+    // 64bit machine, no padding required
+#else
+    // 32bit machine, add padding
+    uint32_t padding;
+#endif
+    uint32_t f_mode;    // !:应该在上面
+    // char f_pad[FILE_STRUCT_SIZE - MAXNAMELEN - (4 + NDIRECT) * 4 - sizeof(void*)];
+    char f_pad[FILE_STRUCT_SIZE - MAXNAMELEN - (4 + NDIRECT) * 4 - 8];    //	是为了让整数个文件结构体占用一个磁盘块，填充结构体中剩下的字节
 } __attribute__((aligned(4), packed));
 
 #define FILE2BLK (BLOCK_SIZE / sizeof(struct File))	// 也就是每一个块有多少个文件控制块，向下取整，这里是16

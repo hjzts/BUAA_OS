@@ -2,7 +2,7 @@
 #define _DBGK_H_
 #include <printk.h>
 
-#define DEBUGK
+// #define DEBUGK
 // 可以注释，那就不会打印
 
 #ifdef DEBUGK
