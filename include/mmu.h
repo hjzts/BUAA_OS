@@ -7,8 +7,8 @@
 
 #define NASID 256 // Node's Abstract System id,系统最大节点数
 #define PAGE_SIZE 4096 // 每个页的大小，页偏移位数为12位
-#define PTMAP PAGE_SIZE
-#define PDMAP (4 * 1024 * 1024) // bytes mapped by a page directory entry一个页目录项可以映射的字节数
+#define PTMAP PAGE_SIZE // 4K
+#define PDMAP (4 * 1024 * 1024) // 4M bytes mapped by a page directory entry一个页目录项可以映射的字节数
 #define PGSHIFT 12
 #define PDSHIFT 22 // log2(PDMAP)
 #define PDX(va) ((((u_long)(va)) >> PDSHIFT) & 0x03FF)

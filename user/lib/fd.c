@@ -54,6 +54,9 @@ int fd_alloc(struct Fd** fd)
     return -E_MAX_OPEN;
 }
 
+/**
+ * fd_close实际上调用了syscall_mem_unmap(0,fd)
+ */
 void fd_close(struct Fd* fd)
 {
     panic_on(syscall_mem_unmap(0, fd));
@@ -83,13 +86,28 @@ int fd_lookup(int fdnum, struct Fd** fd)
     return -E_INVAL;
 }
 
-// 调用了fd2num(fd),得到fd是在哪个页面,然后得到这个页面的初始位置的指针
+/**
+ * 地址结构是这样
+ *
+ o                      +----------------------------+------------               |
+ o                      |                            |     FILE                  |
+ o       FILEBASE ----> +----------------------------+------------0x6000 0000    |
+ o                      |  4M空间，每个进程拿来存放fd  |     FDTABLE               |
+ o                      +----------------------------+------------0x6f3f 0000    |
+*/
+
+// 调用了fd2num(fd),在fd所在页面的1/4的位置的空间
+// (0x60000000 + (fd2num(fd))*PAGE_SIZE)
+// (0x60000000 + ROUND(((u_int)fd - (0x60000000 - 0x400)), PAGE_SIZE=0x400))
+// (0x400 + ROUND(((u_int)fd), PAGE_SIZE))
 void* fd2data(struct Fd* fd)
 {
     return (void*)INDEX2DATA(fd2num(fd));
 }
 
-// 从FDTABLE开始,fd的地址减去起始地址FDTABLE,然后除以每一页的大小4KBPTMAP
+// 从FDTABLE开始,fd的地址减去起始地址FDTABLE,然后除以每一页的大小4KB PTMAP
+// ((u_int)fd - (0x60000000 - PAGE_SIZE)) / PAGE_SIZE
+// fd是地址，找到在FDTABLE是第几项
 int fd2num(struct Fd* fd)
 {
     return ((u_int)fd - FDTABLE) / PTMAP;
@@ -100,6 +118,9 @@ int num2fd(int fd)
     return fd * PTMAP + FDTABLE;
 }
 
+/**
+ * 根据fdnum找到对应的文件描述符，然后unmap
+ */
 int close(int fdnum)
 {
     int r;
@@ -156,9 +177,6 @@ int dup(int oldfdnum, int newfdnum)
     ova = fd2data(oldfd);
     nva = fd2data(newfd);
     /* Step 5: Dunplicate the data and 'fd' self from old to new. */
-    if ((r = syscall_mem_map(0, oldfd, 0, newfd, vpt[VPN(oldfd)] & (PTE_D | PTE_LIBRARY))) < 0) {
-        goto err;
-    }
 
     if (vpd[PDX(ova)]) {
         for (i = 0; i < PDMAP; i += PTMAP) {
@@ -173,6 +191,9 @@ int dup(int oldfdnum, int newfdnum)
                 }
             }
         }
+    }
+    if ((r = syscall_mem_map(0, oldfd, 0, newfd, vpt[VPN(oldfd)] & (PTE_D | PTE_LIBRARY))) < 0) {
+        goto err;
     }
 
     return newfdnum;
@@ -215,8 +236,8 @@ int read(int fdnum, void* buf, u_int n)
     }
     // Step 3: Read from 'dev' into 'buf' at the seek position (offset in 'fd').
     /* Exercise 5.10: Your code here. (3/4) */
-	// 看到有个学长是这么写的，使用函数指针和函数指针的解引用，本质是一样的
-	// 	r = (*dev->dev_read)(fd, buf, n, fd->fd_offset);
+    // 看到有个学长是这么写的，使用函数指针和函数指针的解引用，本质是一样的
+    // 	r = (*dev->dev_read)(fd, buf, n, fd->fd_offset);
     r = dev->dev_read(fd, buf, n, fd->fd_offset);
     // Step 4: Update the offset in 'fd' if the read is successful.
     /* Hint: DO NOT add a null terminator to the end of the buffer!
