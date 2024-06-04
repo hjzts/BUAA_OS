@@ -171,8 +171,9 @@ int spawn(char* prog, char** argv)
     // Step 5: Load the ELF segments in the file into the child's memory.
     // This is similar to 'load_icode()' in the kernel.
     size_t ph_off;
-    ELF_FOREACH_PHDR_OFF(ph_off, ehdr)
-    {
+    // ELF_FOREACH_PHDR_OFF(ph_off, ehdr)
+    (ph_off) = (ehdr)->e_phoff;
+    for (int _ph_idx = 0; _ph_idx < (ehdr)->e_phnum; ++_ph_idx, (ph_off) += (ehdr)->e_phentsize) {
         // Read the program header in the file with offset 'ph_off' and length
         // 'ehdr->e_phentsize' into 'elfbuf'.
         // 'goto err1' on failure.
