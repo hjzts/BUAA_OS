@@ -95,10 +95,10 @@ int parsecmd(char** argv, int* rightpipe)
             // and subsequently terminate the process using 'exit'.
             /* Exercise 6.5: Your code here. (1/3) */
             if ((fd = open(t, O_RDONLY)) < 0) {
-                // user_panic("< open failed");
+                user_panic("< open failed");
                 // 下面是帅哥的写法
-                debugf("failed to open %s\n");
-                exit();
+                // debugf("failed to open %s\n");
+                // exit();
             }
             dup(fd, 0);
             // 下面是帅哥的写法
@@ -173,8 +173,8 @@ int parsecmd(char** argv, int* rightpipe)
                 return parsecmd(argv, rightpipe);
             } else {
                 dup(p[0], 1);
-                close(p[0]);
                 close(p[1]);
+                close(p[0]);
                 return argc;
             }
             // user_panic("| not implemented");
