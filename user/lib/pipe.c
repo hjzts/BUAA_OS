@@ -65,9 +65,9 @@ int pipe(int pfd[2])
     }
 
     /* Step 2: Allocate and map the page for the 'Pipe' structure. */
-	/**
-	 * 
-	*/
+    /**
+     *
+     */
     va = fd2data(fd0);
     if ((r = syscall_mem_alloc(0, (void*)va, PTE_D | PTE_LIBRARY)) < 0) {
         goto err2;
@@ -163,8 +163,25 @@ static int pipe_read(struct Fd* fd, void* vbuf, u_int n, u_int offset)
     //    of bytes read so far.
     //  - Otherwise, keep yielding until the buffer isn't empty or the pipe is closed.
     /* Exercise 6.1: Your code here. (2/3) */
-
-    user_panic("pipe_read not implemented");
+    p = (struct Pipe*)fd2data(fd);
+    // 帅哥没有下面这个
+    while (p->p_rpos == p->p_wpos) {
+        if (_pipe_is_closed(fd, p))
+            return 0;
+        syscall_yield();
+    }
+    rbuf = (char*)vbuf;
+    for (int i = 0; i < n; i++) {
+        while (p->p_rpos == p->p_wpos) {
+            if (_pipe_is_closed(fd, p) || i > 0)
+                return i;
+            syscall_yield();
+        }
+        rbuf[i] = p->p_buf[p->p_rpos % PIPE_SIZE];
+        p->p_rpos++;
+    }
+    return n;
+    // user_panic("pipe_read not implemented");
 }
 
 /* Overview:
@@ -174,7 +191,7 @@ static int pipe_read(struct Fd* fd, void* vbuf, u_int n, u_int offset)
  *   Return the number of bytes written into the pipe.
  *
  * Hint:
- *   Use 'fd2data' to get the 'Pipe' referred by 'fd'.
+ *   Use 'fd2data' to get the 'Pipe' referred by 'fd'.git 
  *   Use '_pipe_is_closed' to judge if the pipe is closed.
  *   The parameter 'offset' isn't used here.
  */
@@ -194,7 +211,19 @@ static int pipe_write(struct Fd* fd, const void* vbuf, u_int n, u_int offset)
     //    pipe is closed.
     /* Exercise 6.1: Your code here. (3/3) */
 
-    user_panic("pipe_write not implemented");
+    p = (struct Pipe*)fd2data(fd);
+    wbuf = (char*)vbuf;
+    for (int i = 0; i < n; i++) {
+        while (p->p_wpos - p->p_rpos == PIPE_SIZE) {
+            if (_pipe_is_closed(fd, p))
+                return i;
+            syscall_yield();
+        }
+        p->p_buf[p->p_wpos % PIPE_SIZE] = wbuf[i];
+        p->p_wpos++;
+    }
+
+    // user_panic("pipe_write not implemented");
 
     return n;
 }
