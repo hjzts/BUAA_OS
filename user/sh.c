@@ -158,15 +158,15 @@ int parsecmd(char** argv, int* rightpipe)
             int p[2];
             /* Exercise 6.5: Your code here. (3/3) */
             pipe(p);
-            // 帅哥写的是
             // if ((r = pipe(p)) < 0) {
             //     debugf("failed to create pipe\n");
             //     exit();
             // }
 
-            // 帅哥写的是
-            // if((*rightpipe = fork()) == 0) {
-            if ((rightpipe = (int*)fork()) == 0) {
+            // *rightpipe = fork();
+            // if (*rightpipe == 0) {
+            if ((*rightpipe = fork()) == 0) {
+                // if ((rightpipe = (int*)fork()) == 0) {
                 dup(p[0], 0);
                 close(p[0]);
                 close(p[1]);
