@@ -96,10 +96,10 @@ int fd_lookup(int fdnum, struct Fd** fd)
  o                      +----------------------------+------------0x6f3f 0000    |
 */
 
-// 调用了fd2num(fd),在fd所在页面的1/4的位置的空间
+// 调用了fd2num(fd),在fd所在页面的下一个页面
 // (0x60000000 + (fd2num(fd))*PAGE_SIZE)
 // (0x60000000 + ROUND(((u_int)fd - (0x60000000 - 0x400)), PAGE_SIZE=0x400))
-// (0x400 + ROUND(((u_int)fd), PAGE_SIZE))
+// (PAGE_SIZE + ROUND(((u_int)fd), PAGE_SIZE))
 void* fd2data(struct Fd* fd)
 {
     return (void*)INDEX2DATA(fd2num(fd));
@@ -146,7 +146,7 @@ void close_all(void)
 }
 
 /* Overview:
- *   Duplicate the file descriptor.
+ *   Duplicate 复制 the file descriptor.
  *
  * Post-Condition:
  *   Return 'newfdnum' on success.
@@ -195,6 +195,7 @@ int dup(int oldfdnum, int newfdnum)
             }
         }
     }
+    
     if ((r = syscall_mem_map(0, oldfd, 0, newfd, vpt[VPN(oldfd)] & (PTE_D | PTE_LIBRARY))) < 0) {
         goto err;
     }

@@ -31,7 +31,7 @@ int main() {
 		exit();
 	} else {
 		debugf("[%08x] pipe_readeof close %d\n", env->env_id, p[0]);
-		close(p[0]);
+		close(p[0]);		
 		debugf("[%08x] pipe_readeof write %d\n", env->env_id, p[1]);
 		if ((i = write(p[1], msg, strlen(msg))) != strlen(msg)) {
 			user_panic("write: %d", i);

@@ -164,12 +164,17 @@ static int pipe_read(struct Fd* fd, void* vbuf, u_int n, u_int offset)
     //  - Otherwise, keep yielding until the buffer isn't empty or the pipe is closed.
     /* Exercise 6.1: Your code here. (2/3) */
     p = (struct Pipe*)fd2data(fd);
-    // 帅哥没有下面这个
+
+    // cys没有下面这个
+    // 在开始前先判断一下，实际上是不需要的
+    /*
     while (p->p_rpos == p->p_wpos) {
         if (_pipe_is_closed(fd, p))
             return 0;
         syscall_yield();
     }
+    */
+
     rbuf = (char*)vbuf;
     for (int i = 0; i < n; i++) {
         while (p->p_rpos == p->p_wpos) {
@@ -191,7 +196,7 @@ static int pipe_read(struct Fd* fd, void* vbuf, u_int n, u_int offset)
  *   Return the number of bytes written into the pipe.
  *
  * Hint:
- *   Use 'fd2data' to get the 'Pipe' referred by 'fd'.git 
+ *   Use 'fd2data' to get the 'Pipe' referred by 'fd'
  *   Use '_pipe_is_closed' to judge if the pipe is closed.
  *   The parameter 'offset' isn't used here.
  */
@@ -224,7 +229,6 @@ static int pipe_write(struct Fd* fd, const void* vbuf, u_int n, u_int offset)
     }
 
     // user_panic("pipe_write not implemented");
-
     return n;
 }
 

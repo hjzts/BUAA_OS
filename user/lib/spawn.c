@@ -112,6 +112,7 @@ int spawn(char* prog, char** argv)
 {
     // Step 1: Open the file 'prog' (the path of the program).
     // Return the error if 'open' fails.
+    // 从文件系统打开对应的文件（二进制 ELF，在我们的 OS 里是 *.b ）
     int fd;
     if ((fd = open(prog, O_RDONLY)) < 0) {
         return fd;
@@ -147,10 +148,14 @@ int spawn(char* prog, char** argv)
     // If the syscall fails, set 'r' and 'goto err'.
     u_int child;
     /* Exercise 6.4: Your code here. (2/6) */
+    // 申请新的进程控制块；
     if ((child = syscall_exofork()) < 0) {
         r = child;
         goto err;
     }
+    
+    // debugf("spawn: father %x, child %x\n", syscall_getenvid(), child);
+
     /**
      * 下面是我写的
      *
@@ -165,6 +170,7 @@ int spawn(char* prog, char** argv)
     // 'goto err1' if that fails.
     u_int sp;
     /* Exercise 6.4: Your code here. (3/6) */
+    // 为子进程初始化地址空间
     if ((r = init_stack(child, argv, &sp)) < 0)
         goto err1;
 
@@ -172,6 +178,7 @@ int spawn(char* prog, char** argv)
     // This is similar to 'load_icode()' in the kernel.
     size_t ph_off;
     // ELF_FOREACH_PHDR_OFF(ph_off, ehdr)
+    // 下面两句等于上面这个，但是vscode这里老师报错，不爽
     (ph_off) = (ehdr)->e_phoff;
     for (int _ph_idx = 0; _ph_idx < (ehdr)->e_phnum; ++_ph_idx, (ph_off) += (ehdr)->e_phentsize) {
         // Read the program header in the file with offset 'ph_off' and length
@@ -179,6 +186,7 @@ int spawn(char* prog, char** argv)
         // 'goto err1' on failure.
         // You may want to use 'seek' and 'readn'.
         /* Exercise 6.4: Your code here. (4/6) */
+        // 将目标程序加载到子进程的地址空间中，并为它们分配物理页面；
         if ((r = seek(fd, ph_off)) < 0)
             goto err1;
         if ((r = readn(fd, elfbuf, ehdr->e_phentsize)) != ehdr->e_phentsize) {
@@ -209,6 +217,7 @@ int spawn(char* prog, char** argv)
     }
     close(fd);
 
+    // 设置子进程的寄存器（栈指针 sp 和用户程序入口 EPC）
     struct Trapframe tf = envs[ENVX(child)].env_tf;
     tf.cp0_epc = entrypoint;
     tf.regs[29] = sp;
@@ -217,6 +226,7 @@ int spawn(char* prog, char** argv)
     }
 
     // Pages with 'PTE_LIBRARY' set are shared between the parent and the child.
+    // 将父进程的共享页面映射到子进程的地址空间中
     for (u_int pdeno = 0; pdeno <= PDX(USTACKTOP); pdeno++) {
         if (!(vpd[pdeno] & PTE_V)) {
             continue;
@@ -234,7 +244,7 @@ int spawn(char* prog, char** argv)
             }
         }
     }
-
+    // 设置子进程可执行
     if ((r = syscall_set_env_status(child, ENV_RUNNABLE)) < 0) {
         debugf("spawn: syscall_set_env_status %x: %d\n", child, r);
         goto err2;

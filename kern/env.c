@@ -371,7 +371,7 @@ static void load_icode(struct Env* e, const void* binary, size_t size)
         debugk("the program header's address is %x", ph);
         if (ph->p_type == PT_LOAD) { // Segment type
             // 'elf_load_seg' is defined in lib/elfloader.c
-            // 'load_icode_mapper' defines the way in which a page in this segment
+            // 'load_icode_mapper' defines the way in which a    in this segment
             // should be mapped.
             debugk("the ph->p_type is equal to PT_LOAD");
             panic_on(elf_load_seg(ph, binary + ph->p_offset, load_icode_mapper, e));
