@@ -5,7 +5,8 @@ int h = 25;
 int w = 80;
 
 const int INT_MAX = 2147483647;
-char input[8192];
+char buf[8192];
+char out[8192];
 
 // Overview:
 //   Interpret integer in range (0, 2^31) in the string 'arg' when handling option 'argname'.
@@ -37,6 +38,54 @@ int atoi(char *argname, char *arg)
 	}
 
 	return r;
+}
+
+void more(int f, char *s)
+{
+	// printf("222\n");
+	long n;
+	int r;
+
+	while ((n = read(f, buf, (long)sizeof buf)) > 0)
+	{
+		if (n <= w)
+		{
+			if ((r = write(1, buf, n)) != n)
+			{
+				user_panic("write error copying %s: %d", s, r);
+			}
+		}
+		else
+		{
+			int k = 0;
+			while (k < n)
+			{
+				if (n - k > w)
+				{
+					for (int i = 0; i < w; i++)
+					{
+						out[i] = buf[k + i];
+					}
+					write(1, out, w);
+					k += w;
+				}
+				else
+				{
+					for (int i = 0; i < n - k; i++)
+					{
+						out[i] = buf[k + i];
+					}
+					write(1, out, n - k);
+					break;
+				}
+				printf("%d \n", k);
+			}
+		}
+	}
+	if (n < 0)
+	{
+		user_panic("error reading %s: %d", s, n);
+	}
 }
 
 int main(int argc, char **argv)
@@ -83,7 +132,9 @@ int main(int argc, char **argv)
 			}
 			else
 			{
+				// printf("111\n");
 				dup(f, 0);
+				more(0, argv[i]);
 				close(f);
 			}
 		}
@@ -117,11 +168,21 @@ int main(int argc, char **argv)
 	/* Your code here. (6/6) */
 	char ch;
 	int i = 0;
-	while ((ch = syscall_cgetc()) != '\n')
+	ch = syscall_cgetc();
+	if (ch == 'q')
 	{
-		input[i] = ch;
-		i++;
+		return 0;
 	}
-	input[i] = '\0';
+	else
+	{
+		more(0, argv[i]);
+	}
+	// while ((ch = syscall_cgetc()) != '\n')
+	// {
+	// 	buf[i] = ch;
+	// 	i++;
+	// }
+	// buf[i] = '\0';
+	// more(0, argv[i]);
 	return 0;
 }
