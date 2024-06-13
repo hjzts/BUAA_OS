@@ -14,7 +14,7 @@ int block_is_free(u_int);
 void* disk_addr(u_int blockno)
 {
     /* Exercise 5.6: Your code here. */
-    debugk_user("function disk_addr is called in fs/fs.c");
+    // debugk_user("function disk_addr is called in fs/fs.c");
     // 学长比我多一个判断
     panic_on(super != NULL && blockno >= super->s_nblocks);
     // 虽然会进行自动类型转换
@@ -103,7 +103,7 @@ void write_block(u_int blockno)
 //  use disk_addr, block_is_mapped, syscall_mem_alloc, and ide_read.
 int read_block(u_int blockno, void** blk, u_int* isnew)
 {
-    debugk_user("function read_block is called in fs/fs.c");
+    // debugk_user("function read_block is called in fs/fs.c");
     // Step 1: validate blockno. Make file the block to read is within the disk.
     if (super && blockno >= super->s_nblocks) {
         user_panic("reading non-existent block %08x\n", blockno);
@@ -196,7 +196,7 @@ void unmap_block(u_int blockno)
 //  Return 1 if the block is free, else 0.
 int block_is_free(u_int blockno)
 {
-    debugk_user("function block_is_free is called in fs/fs.c");
+    // debugk_user("function block_is_free is called in fs/fs.c");
     if (super == 0 || blockno >= super->s_nblocks) {
         return 0;
     }
@@ -275,18 +275,18 @@ int alloc_block(void)
 //  If error occurred during read super block or validate failed, panic.
 void read_super(void)
 {
-    debugk_user("function read_super is called in fs/fs.c");
+    // debugk_user("function read_super is called in fs/fs.c");
     int r;
     void* blk;
 
-    debugk_user("debug: 111 in read_super");
+    // debugk_user("debug: 111 in read_super");
     // Step 1: read super block.
     if ((r = read_block(1, &blk, 0)) < 0) {
         user_panic("cannot read superblock: %d", r);
     }
     super = blk;
 
-    debugk_user("debug: 222 in read_super");
+    // debugk_user("debug: 222 in read_super");
     // Step 2: Check fs magic nunber.
     if (super->s_magic != FS_MAGIC) {
         user_panic("bad file system magic number %x %x", super->s_magic, FS_MAGIC);
