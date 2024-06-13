@@ -2,7 +2,7 @@
 #define _DBGK_H_
 #include <printk.h>
 
-// #define DEBUGK
+#define DEBUGK
 // 可以注释，那就不会打印
 
 #ifdef DEBUGK
@@ -25,7 +25,7 @@
 #define debugk_user(...)
 #endif
 
-// #define SHELL
+#define SHELL
 #ifdef SHELL
 #define shellk(fmt, ...)                      \
     do {                                      \

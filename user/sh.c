@@ -96,12 +96,10 @@ int parsecmd(char** argv, int* rightpipe)
             /* Exercise 6.5: Your code here. (1/3) */
             if ((fd = open(t, O_RDONLY)) < 0) {
                 // user_panic("< open failed");
-                // 下面是帅哥的写法
                 debugf("failed to open '%s'\n", t);
                 exit();
             }
             dup(fd, 0);
-            // 下面是帅哥的写法
             // if ((r = dup(fd, 0)) < 0) {
             //     debugf("failed to duplicate file to <stdin>\n");
             //     exit();
@@ -124,12 +122,10 @@ int parsecmd(char** argv, int* rightpipe)
             /* Exercise 6.5: Your code here. (2/3) */
             if ((fd = open(t, O_WRONLY)) < 0) {
                 // user_panic("> open failed");
-                // 下面是帅哥的写法
                 debugf("failed to open '%s'\n", t);
                 exit();
             }
             dup(fd, 1);
-            // 下面是帅哥的写法
             // if ((r = dup(fd, 1)) < 0) {
             //     debugf("failed to duplicate file to <stdout>\n");
             //     exit();
@@ -187,6 +183,7 @@ int parsecmd(char** argv, int* rightpipe)
 
 void runcmd(char* s)
 {
+    debugk_user("function runcmd is called in user/sh.c");
     gettoken(s, 0);
 
     char* argv[MAXARGS];
@@ -198,6 +195,7 @@ void runcmd(char* s)
     argv[argc] = 0;
 
     int child = spawn(argv[0], argv);
+    debugk_user("IN user/sh.c runcmd , the function <<spawn>> %s: %d\n", argv[0], child);
     close_all();
     if (child >= 0) {
         wait(child);
@@ -288,6 +286,7 @@ int main(int argc, char** argv)
             printf("\n$ ");
         }
         readline(buf, sizeof buf);
+        debugk_user("IN sh.c main() the local variable <<buf>> is %s", buf);
 
         if (buf[0] == '#') {
             continue;

@@ -1,5 +1,6 @@
 #include <env.h>
 #include <lib.h>
+// cpu 忙等
 void wait(u_int envid) {
 	const volatile struct Env *e;
 

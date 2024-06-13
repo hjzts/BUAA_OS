@@ -102,6 +102,30 @@ static int spawn_mapper(void* data, u_long va, size_t offset, u_int perm, const 
     return 0;
 }
 
+char buffer[128];
+char* add_dot_b(char* prog)
+{
+    /* 计算结果字符串的长度 */
+    int length = 0;
+    char* p = prog;
+    while (*p++ != '\0') {
+        length++;
+    }
+    length += 3; /* 添加 ".b" 和 '\0' */
+    /* 分配内存 */
+    /* 复制 prog 到 buffer */
+    char* q = buffer;
+    p = prog;
+    while (*p != '\0') {
+        *q++ = *p++;
+    }
+    /* 添加 ".b" */
+    *q++ = '.';
+    *q++ = 'b';
+    /* 添加 '\0' */
+    *q = '\0';
+    return buffer;
+}
 /* Note:
  *   This function involves loading executable code to memory. After the completion of load
  *   procedures, D-cache and I-cache writeback/invalidation MUST be performed to maintain cache
@@ -113,11 +137,17 @@ int spawn(char* prog, char** argv)
     // Step 1: Open the file 'prog' (the path of the program).
     // Return the error if 'open' fails.
     // 从文件系统打开对应的文件（二进制 ELF，在我们的 OS 里是 *.b ）
+    debugk_user("function spawn is called in user/lib/spawn.c");
     int fd;
     if ((fd = open(prog, O_RDONLY)) < 0) {
-        return fd;
+        // debugk_user("IN function spawn open file %s failed", prog);
+        char* new_prog = add_dot_b(prog);
+        // debugk_user("IN spawn.c spawn the local variable is %s", new_prog);
+        if ((fd = open(new_prog, O_RDONLY)) < 0) {
+            return fd;
+        }
     }
-
+    // debugk_user("IN function spawn open file %s is ok", prog);
     // Step 2: Read the ELF header (of type 'Elf32_Ehdr') from the file into 'elfbuf' using
     // 'readn()'.
     // If that fails (where 'readn' returns a different size than expected),
@@ -153,7 +183,7 @@ int spawn(char* prog, char** argv)
         r = child;
         goto err;
     }
-    
+
     // debugf("spawn: father %x, child %x\n", syscall_getenvid(), child);
 
     /**

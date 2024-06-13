@@ -214,10 +214,10 @@ static int env_setup_vm(struct Env* e)
 
     struct Page* p;
     try(page_alloc(&p));
-    debugk("page is alloced in function env_setup_vm");
+    // debugk("page is alloced in function env_setup_vm");
     /* Exercise 3.3: Your code here. */
     p->pp_ref++;
-    debugk("page p's page2kva is %lu", page2kva(p));
+    // debugk("page p's page2kva is %lu", page2kva(p));
     if (!e)
         return -E_NO_FREE_ENV;
     e->env_pgdir = (Pde*)page2kva(p);
@@ -228,7 +228,7 @@ static int env_setup_vm(struct Env* e)
      */
     memcpy(e->env_pgdir + PDX(UTOP), base_pgdir + PDX(UTOP),
         sizeof(Pde) * (PDX(UVPT) - PDX(UTOP)));
-    debugk("memcpy is over in function env_setup_vm");
+    // debugk("memcpy is over in function env_setup_vm");
     /* Step 3: Map its own page table at 'UVPT' with readonly permission.
      * As a result, user programs can read its page table through 'UVPT' */
     e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) | PTE_V;
@@ -280,10 +280,10 @@ int env_alloc(struct Env** new, u_int parent_id)
     e->env_runs = 0; // for lab6
     /* Exercise 3.4: Your code here. (3/4) */
     e->env_id = mkenvid(e);
-    debugk("env_id is made in function env_alloc");
+    // debugk("env_id is made in function env_alloc");
     try(asid_alloc(&(e->env_asid)));
     e->env_parent_id = parent_id;
-    debugk("env_parent_id is make in fucntion env_alloc");
+    // debugk("env_parent_id is make in fucntion env_alloc");
     /* Step 4: Initialize the sp and 'cp0_status' in 'e->env_tf'.
      *   Set the EXL bit to ensure that the processor remains in kernel mode during context
      * recovery. Additionally, set UM to 1 so that when ERET unsets EXL, the processor
@@ -353,7 +353,7 @@ static void load_icode(struct Env* e, const void* binary, size_t size)
     debugk("load_icode is called");
     /* Step 1: Use 'elf_from' to parse an ELF header from 'binary'. */
     const Elf32_Ehdr* ehdr = elf_from(binary, size);
-    debugk("ehdr is init");
+    // debugk("ehdr is init");
     if (!ehdr) {
         panic("bad elf at %x", binary);
     }
@@ -368,17 +368,17 @@ static void load_icode(struct Env* e, const void* binary, size_t size)
     debugk("%d", ehdr->e_phnum);
     for (int _ph_idx = 0; _ph_idx < (ehdr)->e_phnum; ++_ph_idx, (ph_off) += (ehdr)->e_phentsize) {
         Elf32_Phdr* ph = (Elf32_Phdr*)(binary + ph_off); // program header
-        debugk("the program header's address is %x", ph);
+        // debugk("the program header's address is %x", ph);
         if (ph->p_type == PT_LOAD) { // Segment type
             // 'elf_load_seg' is defined in lib/elfloader.c
             // 'load_icode_mapper' defines the way in which a    in this segment
             // should be mapped.
-            debugk("the ph->p_type is equal to PT_LOAD");
+            // debugk("the ph->p_type is equal to PT_LOAD");
             panic_on(elf_load_seg(ph, binary + ph->p_offset, load_icode_mapper, e));
         }
-        debugk("one of program header is over");
+        // debugk("one of program header is over");
     }
-    debugk("traverse the ehdr is over");
+    // debugk("traverse the ehdr is over");
 
     /* Step 3: Set 'e->env_tf.cp0_epc' to 'ehdr->e_entry'. */
     /* Exercise 3.6: Your code here. */
@@ -403,7 +403,7 @@ struct Env* env_create(const void* binary, size_t size, int priority)
     // env_alloc(&e,0);
     if (env_alloc(&e, 0) < 0)
         return NULL;
-    debugk("env_alloc a new env is ok");
+    // debugk("env_alloc a new env is ok");
     /* Step 2: Assign the 'priority' to 'e' and mark its 'env_status' as runnable. */
     /* Exercise 3.7: Your code here. (2/3) */
     e->env_pri = priority;

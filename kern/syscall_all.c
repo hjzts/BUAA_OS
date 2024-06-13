@@ -261,7 +261,7 @@ int sys_exofork(void)
     /* Exercise 4.9: Your code here. (1/4) */
     debugk("sys_exofork function is called");
     try(env_alloc(&e, curenv->env_id));
-    debugk("env_alloc is ok in function sys_exofork in kern/syscall_all.c");
+    // debugk("env_alloc is ok in function sys_exofork in kern/syscall_all.c");
 
     /* Step 2: Copy the current Trapframe below 'KSTACKTOP' to the new env's 'env_tf'. */
     /* Exercise 4.9: Your code here. (2/4) */
@@ -269,7 +269,7 @@ int sys_exofork(void)
     // memcpy((void*)(&(e->env_tf)), (void*)(KSTACKTOP - sizeof(struct Trapframe)), sizeof(struct Trapframe));
     // 结构体的赋值，是直接结构体的内存的拷贝!!!!神奇的C语言
     e->env_tf = *((struct Trapframe*)KSTACKTOP - 1);
-    debugk("memcpy is ok in function sys_exofork in kern/syscall_all.c");
+    // debugk("memcpy is ok in function sys_exofork in kern/syscall_all.c");
     /* Step 3: Set the new env's 'env_tf.regs[2]' to 0 to indicate the return value in child. */
     /* Exercise 4.9: Your code here. (3/4) */
     e->env_tf.regs[2] = 0;
