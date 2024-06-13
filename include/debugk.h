@@ -25,4 +25,14 @@
 #define debugk_user(...)
 #endif
 
+// #define SHELL
+#ifdef SHELL
+#define shellk(fmt, ...)                      \
+    do {                                      \
+        printk( fmt, ##__VA_ARGS__); \
+    } while (0)
+#else
+#define shellk(...)
+#endif
+
 #endif // !_DBGK_H_

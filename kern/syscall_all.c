@@ -86,7 +86,7 @@ int sys_env_destroy(u_int envid)
     struct Env* e;
     try(envid2env(envid, &e, 1));
 
-    printk("[%08x] destroying %08x\n", curenv->env_id, e->env_id);
+    shellk("[%08x] destroying %08x\n", curenv->env_id, e->env_id);
     env_destroy(e);
     return 0;
 }

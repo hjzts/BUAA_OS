@@ -42,7 +42,8 @@ ifeq ($(call lab-ge,6), true)
 			testfdsharing.b \
 			pingpong.b \
 			init.b \
-			more.b
+			more.b \
+			sed.b
 endif
 
 USERLIB := $(addprefix lib/, $(USERLIB)) $(wildcard ../lib/*.o)
