@@ -34,7 +34,7 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe* tf)
     /* Exercise 4.13: Your code here. (2/6) */
     perm = (perm & ~PTE_COW) | PTE_D;
     debugk_user("perm has remove PTE_COE and add PTE_D in function cow_enty");
-    
+
     /* Step 3: Allocate a new page at 'UCOW'. */
     /* Exercise 4.13: Your code here. (3/6) */
     try(syscall_mem_alloc(0, (void*)UCOW, perm));
@@ -115,6 +115,8 @@ static void duppage(u_int envid, u_int vpn)
 /* Overview:
  *   User-level 'fork'. Create a child and then copy our address space.
  *   Set up ours and its TLB Mod user exception entry to 'cow_entry'.
+ *   在父进程中，fork()返回的是新创建的子进程的进程ID(大于0的值);
+ *   在子进程中，fork()返回0;
  *
  * Post-Conditon:
  *   Child's 'env' is properly set.
@@ -159,6 +161,7 @@ int fork(void)
             duppage(child, i);
         }
     }*/
+
     /* Step 4: Set up the child's tlb mod handler and set child's 'env_status' to
      * 'ENV_RUNNABLE'. */
     /* Hint:

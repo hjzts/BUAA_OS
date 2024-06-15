@@ -26,6 +26,7 @@
 #endif
 
 #define SHELL
+// 可以注释，那就不会打印
 #ifdef SHELL
 #define shellk(fmt, ...)                      \
     do {                                      \

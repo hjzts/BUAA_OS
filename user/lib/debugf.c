@@ -52,6 +52,7 @@ void debugf(const char* fmt, ...)
     va_end(ap);
 }
 
+// debugf & exit()
 void _user_panic(const char* file, int line, const char* fmt, ...)
 {
     debugf("panic at %s:%d: ", file, line);

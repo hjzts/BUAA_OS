@@ -111,8 +111,10 @@ char* add_dot_b(char* prog)
     while (*p++ != '\0') {
         length++;
     }
+    if (length > 125) {
+        return prog;
+    }
     length += 3; /* 添加 ".b" 和 '\0' */
-    /* 分配内存 */
     /* 复制 prog 到 buffer */
     char* q = buffer;
     p = prog;

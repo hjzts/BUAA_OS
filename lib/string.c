@@ -71,6 +71,7 @@ char *strcpy(char *dst, const char *src) {
 	return ret;
 }
 
+// 如果s中存在c这个元素
 const char *strchr(const char *s, int c) {
 	for (; *s; s++) {
 		if (*s == c) {
