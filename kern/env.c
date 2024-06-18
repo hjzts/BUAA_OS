@@ -278,6 +278,7 @@ int env_alloc(struct Env** new, u_int parent_id)
      */
     e->env_user_tlb_mod_entry = 0; // for lab4
     e->env_runs = 0; // for lab6
+    e->env_exit_code = 0;
     /* Exercise 3.4: Your code here. (3/4) */
     e->env_id = mkenvid(e);
     // debugk("env_id is made in function env_alloc");
@@ -529,7 +530,9 @@ void env_run(struct Env* e)
      *    returning to the kernel caller, making 'env_run' a 'noreturn' function as well.
      */
     /* Exercise 3.8: Your code here. (2/2) */
-    env_pop_tf(&(curenv->env_tf), curenv->env_asid);
+    // env_pop_tf(&(curenv->env_tf), curenv->env_asid);
+    struct Trapframe tmp_tf = curenv->env_tf;
+    env_pop_tf(&tmp_tf, curenv->env_asid);
 }
 
 void env_check()

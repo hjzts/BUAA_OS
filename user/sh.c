@@ -1,5 +1,6 @@
 #include <args.h>
 #include <lib.h>
+int exit_code = 0;
 
 #define WHITESPACE " \t\r\n"
 #define SYMBOLS "<|>&;()`\""
@@ -16,9 +17,10 @@
  *     - '>' for > (stdout redirection).
  *     - '|' for | (pipe).
  *     - '+' for >> (stdout append redirect)
- *     - 'a' for && (command1 && command2, command2 is executed if and only if command1 returns 0)
- *     - 'o' for || (command1 || command2, command2 is executed if and only if command1 returns a non-zero value)
+ *     - 'a' for && (and , command1 && command2, command2 is executed if and only if command1 returns 0)
+ *     - 'o' for || (or , command1 || command2, command2 is executed if and only if command1 returns a non-zero value)
  *     - 'w' for a word (command, argument, or file name).
+ *     - 's' for a string ("" a string in the quote symbol)
  *
  *   The buffer is modified to turn the spaces after words into zero bytes ('\0'), so that the
  *   returned token is a null-terminated string.空字符结尾的字符串
@@ -38,6 +40,25 @@ int _gettoken(char* s, char** p1, char** p2)
     // 如果跳过空白符后是'\0' ,那就说明字符串读完了
     if (*s == 0) {
         return 0;
+    }
+    // 引号单独处理
+    if (*s == '\"') {
+        *s++ = 0;
+        *p1 = s;
+        while (*s && *s != '\"') {
+            s++;
+        }
+        *s++ = 0;
+        *p2 = s;
+        while (!strchr(WHITESPACE, *s)) {
+            s++;
+        }
+        // char* tmp = *p1;
+        // while (*tmp) {
+        //     debugf("{%c} ", *tmp);
+        //     tmp++;
+        // }
+        return 's';
     }
     // 如果*s 是特殊字符
     if (strchr(SYMBOLS, *s)) {
@@ -110,6 +131,14 @@ int parsecmd(char** argv, int* rightpipe)
                 debugf("too many arguments\n");
                 exit();
             }
+            argv[argc++] = t;
+            break;
+        case 's':
+            if (argc >= MAXARGS) {
+                debugf("too many arguments\n");
+                exit();
+            }
+            debugk_user("IN user/sh.c parsecmd(), the local <<t>> is {%s}", t);
             argv[argc++] = t;
             break;
         case '<':
@@ -252,6 +281,14 @@ int parsecmd(char** argv, int* rightpipe)
         case 'o':
             // or
             debugk_user("IN user/sh.c parsecmd, now is ||");
+            left = fork();
+            if (left > 0) {
+                // 让父进程暂停，直到子进程结束
+                wait(left);
+                return parsecmd(argv, rightpipe);
+            } else {
+                return argc;
+            }
             // command1 || command2, command2 is executed if and only if command1 returns a non-zero value
             break;
         }
@@ -385,7 +422,7 @@ int main(int argc, char** argv)
     debugk_user("IN user/sh.c main(), the local <<interactive>> is %d, <<echocmds>> is %d", interactive, echocmds);
     debugk_user("IN user/sh.c main(), the local <<argc>> is %d,  and IN user/sh.c main(), the local <<argv>> is ", argc);
     for (int i = 0; i < argc; i++) {
-        debugk_user("{%c} ", (*argv)[i]);
+        debugk_user("{%s} ", argv[i]);
     }
     if (argc > 1) {
         usage();

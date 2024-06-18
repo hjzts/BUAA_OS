@@ -31,6 +31,11 @@ int syscall_env_destroy(u_int envid)
     return msyscall(SYS_env_destroy, envid);
 }
 
+int syscall_env_destroy_with_exit_code(u_int envid)
+{
+    return msyscall(SYS_env_destroy_with_exit_code, envid);
+}
+
 int syscall_set_tlb_mod_entry(u_int envid, void (*func)(struct Trapframe*))
 {
     return msyscall(SYS_set_tlb_mod_entry, envid, func);
@@ -102,4 +107,9 @@ int syscall_read_dev(void* va, u_int dev, u_int size)
     // }
     // 这里虽然参数va是void*,但是传入msyscall的参数是u_int,类型自动转换了
     return msyscall(SYS_read_dev, va, dev, size);
+}
+
+int syscall_get_return_value(u_int envid)
+{
+    return msyscall(SYS_get_return_value, envid);
 }

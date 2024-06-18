@@ -156,13 +156,18 @@ void serve_open(u_int envid, struct Fsreq_open* rq)
         return;
     }
 
+    // 创建文件，E_NOT_FOUND 或者 dir_alloc_file失败
     if ((rq->req_omode & O_CREAT) && (r = file_create(rq->req_path, &f)) < 0 && r != -E_FILE_EXISTS) {
         ipc_send(envid, r, 0, 0);
         return;
     }
+    if(r == -E_FILE_EXISTS) {
+        
+    }
 
     // Open the file.
     if ((r = file_open(rq->req_path, &f)) < 0) {
+
         ipc_send(envid, r, 0, 0);
         return;
     }

@@ -22,6 +22,8 @@ enum {
 	SYS_cgetc,
 	SYS_write_dev,
 	SYS_read_dev,
+	SYS_get_return_value,
+	SYS_env_destroy_with_exit_code,
 	MAX_SYSNO,
 };
 

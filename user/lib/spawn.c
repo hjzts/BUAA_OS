@@ -281,6 +281,7 @@ int spawn(char* prog, char** argv)
         debugf("spawn: syscall_set_env_status %x: %d\n", child, r);
         goto err2;
     }
+    // debugk_user("IN user/lib/spawn.c spawn(), the <<return value>> is %d", child);
     return child;
 
 err2:
@@ -298,4 +299,7 @@ int spawnl(char* prog, char* args, ...)
     // Thanks to MIPS calling convention, the layout of arguments on the stack
     // are straightforward.
     return spawn(prog, &args);
+    // int r = spawn(prog, &args);
+    // debugk_user("IN user/lib/spawn.c spawnl(), the <<return value>> is %d", r);
+    // return r;
 }
