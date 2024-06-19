@@ -17,6 +17,7 @@
 
 // libos
 void exit(void) __attribute__((noreturn));
+void just_exit(void) __attribute__((noreturn));
 
 extern const volatile struct Env* env;
 
@@ -77,8 +78,6 @@ void ipc_send(u_int whom, u_int val, const void* srcva, u_int perm);
 u_int ipc_recv(u_int* whom, void* dstva, u_int* perm);
 
 // wait.c
-// #define RETURN_VALUE
-
 #ifdef RETURN_VALUE
 int wait(u_int envid);
 #else

@@ -258,7 +258,7 @@ int env_alloc(struct Env** new, u_int parent_id)
 {
     int r;
     struct Env* e;
-    debugk("env_alloc function is called");
+    // debugk("env_alloc function is called");
     /* Step 1: Get a free Env from 'env_free_list' */
     /* Exercise 3.4: Your code here. (1/4) */
     e = LIST_FIRST(&env_free_list);

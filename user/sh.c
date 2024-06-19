@@ -1,7 +1,12 @@
 #include <args.h>
 #include <lib.h>
-int exit_code = 0;
-
+// 需要保证这两个变量只在sh中fork的关于每一行的进程在使用，其他进程使用了也没用
+// 额，子进程可以读还是可以的
+int is_first_cmd = 1;
+int condition = 0;
+int is_and = 0;
+int is_or = 0;
+// 有运行的是设置为1
 #define WHITESPACE " \t\r\n"
 #define SYMBOLS "<|>&;()`\""
 
@@ -116,6 +121,7 @@ int gettoken(char* s, char** p1)
 // return: argc
 int parsecmd(char** argv, int* rightpipe)
 {
+    debugk_user("function parsecmd() is called in user/sh.c");
     int argc = 0;
     while (1) {
         char* t;
@@ -124,12 +130,18 @@ int parsecmd(char** argv, int* rightpipe)
         switch (c) {
         case 0:
             // 结束就返回
+            if ((is_and && !condition) || (is_or && condition)) {
+                return 0;
+            }
             return argc;
         case 'w':
             // 是 word 就保存在 argv 中
             if (argc >= MAXARGS) {
                 debugf("too many arguments\n");
                 exit();
+            }
+            if ((is_and && !condition) || (is_or && condition)) {
+                break;
             }
             argv[argc++] = t;
             break;
@@ -146,15 +158,6 @@ int parsecmd(char** argv, int* rightpipe)
                 debugf("syntax error: < not followed by word\n");
                 exit();
             }
-            // r = gettoken(0, &t);
-            // if (r != 'w') {
-            //     if (r == '<') {
-            //         gettoken(0, &t);
-            //     } else {
-            //         debugf("syntax error: < not followed by word\n");
-            //         exit();
-            //     }
-            // }
 
             // Open 't' for reading, dup it onto fd 0, and then close the original fd.
             // If the 'open' function encounters an error,
@@ -177,7 +180,6 @@ int parsecmd(char** argv, int* rightpipe)
 
             break;
         case '>':
-
             if (gettoken(0, &t) != 'w') {
                 debugf("syntax error: > not followed by word\n");
                 exit();
@@ -240,18 +242,20 @@ int parsecmd(char** argv, int* rightpipe)
             // user_panic("| not implemented");
             break;
         case '\"':
-            debugk_user("IN user/sh.c parsecmd, now is \"");
+            debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is \"");
             break;
         case '`':
-            debugk_user("IN user/sh.c parsecmd, now is `");
+            debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is `");
             break;
         case ';':;
-            debugk_user("IN user/sh.c parsecmd, now is ;");
+            debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is ;");
             // 创建一个子进程来执行左边的命令，返回的left是子进程的env_id
             int left = fork();
             if (left > 0) {
                 // 让父进程暂停，直到子进程结束
                 wait(left);
+                // int exit_code = wait(left);
+                // debugk_user("IN user/sh.c parsecmd(), the local variable <<exit_code>> is %d", exit_code);
                 return parsecmd(argv, rightpipe);
             } else {
                 return argc;
@@ -263,30 +267,52 @@ int parsecmd(char** argv, int* rightpipe)
             break;
         case '+':
             // Append redirect
-            debugk_user("IN user/sh.c parsecmd, now is >> ");
+            debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is >> ");
             break;
         case 'a':;
             // and
-            debugk_user("IN user/sh.c parsecmd, now is &&");
+            debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is &&");
             left = fork();
             if (left > 0) {
                 // 让父进程暂停，直到子进程结束
-                wait(left);
+                int exit_code = wait(left);
+                debugk_user("IN user/sh.c parsecmd(), the local variable <<exit_code>> is %d of env %x", exit_code, syscall_getenvid());
+                if (is_first_cmd) {
+                    is_first_cmd = 0;
+                    condition = exit_code == 0;
+                } else if (!condition) {
+                    condition = exit_code == 0;
+                }
+                is_and = 1;
+                is_or = 0;
+                debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
                 return parsecmd(argv, rightpipe);
             } else {
+                debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
                 return argc;
             }
             // command1 && command2, command2 is executed if and only if command1 returns 0
             break;
         case 'o':
             // or
-            debugk_user("IN user/sh.c parsecmd, now is ||");
+            debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is ||");
             left = fork();
             if (left > 0) {
                 // 让父进程暂停，直到子进程结束
-                wait(left);
+                int exit_code = wait(left);
+                debugk_user("IN user/sh.c parsecmd(), the local variable <<exit_code>> is %d of env %x", exit_code, syscall_getenvid());
+                if (is_first_cmd) {
+                    is_first_cmd = 0;
+                    condition = exit_code == 0;
+                } else if (!condition) {
+                    condition = exit_code == 0;
+                }
+                is_and = 0;
+                is_or = 1;
+                debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
                 return parsecmd(argv, rightpipe);
             } else {
+                debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
                 return argc;
             }
             // command1 || command2, command2 is executed if and only if command1 returns a non-zero value
@@ -302,14 +328,13 @@ void runcmd(char* s)
     debugk_user("function runcmd is called in user/sh.c");
     // 只有第一次调用gettoken，第一个参数*s才不是0，是为了初始化gettoken中的静态变量
     gettoken(s, 0);
-
     char* argv[MAXARGS];
     int rightpipe = 0;
     int argc = parsecmd(argv, &rightpipe);
 
     debugk_user("IN user/sh.c runcmd() the function <<parsecmd>> is called; argc=%d, the argv is :", argc);
     for (int i = 0; i < argc; i++) {
-        debugk_user("{%c} ", argv[i]);
+        debugk_user("{%s} ", argv[i]);
     }
 
     if (argc == 0) {
@@ -318,18 +343,25 @@ void runcmd(char* s)
     argv[argc] = 0;
 
     // argv[0] 表示 命令本身所代表的二进制文件的名字
+    // 最后一个cmd就是这个shell执行的
     int child = spawn(argv[0], argv);
-    debugk_user("IN user/sh.c runcmd() , the function <<spawn>> %s: %d", argv[0], child);
+    debugk_user("IN user/sh.c runcmd() , the function <<spawn>> %s: %x", argv[0], child);
     close_all();
     if (child >= 0) {
+#ifdef RETURN_VALUE
+        int exit_code = wait(child);
+        syscall_set_exit_code(syscall_getenvid(), exit_code);
+        debugk_user("IN user/sh.c runcmd(), the local variable <<exit_code>> from %x is %d", child, exit_code);
+#else
         wait(child);
+#endif
     } else {
         debugf("spawn %s: %d\n", argv[0], child);
     }
     if (rightpipe) {
         wait(rightpipe);
     }
-    exit();
+    just_exit();
 }
 
 void readline(char* buf, u_int n)
@@ -419,8 +451,8 @@ int main(int argc, char** argv)
     }
     ARGEND
 
-    debugk_user("IN user/sh.c main(), the local <<interactive>> is %d, <<echocmds>> is %d", interactive, echocmds);
-    debugk_user("IN user/sh.c main(), the local <<argc>> is %d,  and IN user/sh.c main(), the local <<argv>> is ", argc);
+    // debugk_user("IN user/sh.c main(), the local <<interactive>> is %d, <<echocmds>> is %d", interactive, echocmds);
+    // debugk_user("IN user/sh.c main(), the local <<argc>> is %d,  and IN user/sh.c main(), the local <<argv>> is ", argc);
     for (int i = 0; i < argc; i++) {
         debugk_user("{%s} ", argv[i]);
     }
@@ -440,7 +472,8 @@ int main(int argc, char** argv)
             printf("\n$ ");
         }
         readline(buf, sizeof buf);
-        debugk_user("IN sh.c main() the local variable <<buf>> is %s", buf);
+        is_first_cmd = 1;
+        // debugk_user("IN sh.c main() the local variable <<buf>> is %s", buf);
         process_comments(buf, sizeof buf);
         debugk_user("IN sh.c main() the local variable <<buf>> after process_comments is %s", buf);
         if (buf[0] == '#') {
@@ -455,7 +488,7 @@ int main(int argc, char** argv)
             user_panic("fork: %d", r);
         }
         if (r == 0) {
-            // 子进程负责runcmd
+            // 子进程负责runcmd，对那一行进行处理
             runcmd(buf);
             exit();
         } else {

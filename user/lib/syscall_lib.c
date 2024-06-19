@@ -21,12 +21,27 @@ u_int syscall_getenvid(void)
     return msyscall(SYS_getenvid);
 }
 
+u_int syscall_get_parent_envid(void) {
+    return msyscall(SYS_get_parent_envid);
+}
+
 void syscall_yield(void)
 {
     msyscall(SYS_yield);
 }
 
 #ifdef RETURN_VALUE
+#ifndef IPC
+// 将exit_code设置到父进程的env->env_exit_code处
+int syscall_set_exit_code(u_int envid, int exit_code)
+{
+    return msyscall(SYS_set_exit_code, envid, exit_code);
+}
+int syscall_get_exit_code(u_int envid, int* exit_code)
+{
+    return msyscall(SYS_get_exit_code, envid, exit_code);
+}
+#endif
 int syscall_env_destroy(u_int envid)
 {
     return msyscall(SYS_env_destroy, envid);

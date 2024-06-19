@@ -23,7 +23,7 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe* tf)
     /* Hint: Use 'vpt' and 'VPN' to find the page table entry. If the 'perm' doesn't have
      * 'PTE_COW', launch a 'user_panic'. */
     /* Exercise 4.13: Your code here. (1/6) */
-    debugk_user("static function cow_entry is called");
+    // debugk_user("static function cow_entry is called");
 
     // perm = vpt[VPN(va)];  啊？这个是错的，下面就是对的？
     perm = vpt[VPN(va)] & 0xfff;
@@ -127,6 +127,7 @@ static void duppage(u_int envid, u_int vpn)
  */
 int fork(void)
 {
+    debugk_user("function fork is called in user/lib/fork.c");
     u_int child;
     u_int i;
 
@@ -171,5 +172,6 @@ int fork(void)
     /* Exercise 4.15: Your code here. (2/2) */
     try(syscall_set_tlb_mod_entry(child, cow_entry));
     try(syscall_set_env_status(child, ENV_RUNNABLE));
+    debugk_user("the parent %x forked child %x", syscall_getenvid(), child);
     return child;
 }

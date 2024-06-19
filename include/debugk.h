@@ -2,8 +2,13 @@
 #define _DBGK_H_
 #include <printk.h>
 
-#define DEBUGK
+// #define DEBUGK
+#define SHELL
 // 可以注释，那就不会打印
+#define RETURN_VALUE
+// 用于测试需要有子进程返回值时
+// #define IPC
+// 用来表示使用IPC的方法来获取返回值
 
 #ifdef DEBUGK
 #define debugk(fmt, ...)                      \
@@ -25,8 +30,7 @@
 #define debugk_user(...)
 #endif
 
-#define SHELL
-// 可以注释，那就不会打印
+
 #ifdef SHELL
 #define shellk(fmt, ...)                      \
     do {                                      \

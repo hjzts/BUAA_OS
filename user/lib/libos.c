@@ -3,7 +3,7 @@
 #include <mmu.h>
 
 #ifdef RETURN_VALUE
-#define IPC
+
 int exit_code;
 #ifdef IPC
 // use ipc
@@ -13,6 +13,7 @@ void exit(void)
 #if !defined(LAB) || LAB >= 5
     close_all();
 #endif
+    debugk_user("function exit() is called in user/lib/libos.c");
     int parent = env->env_parent_id;
     if (!(parent == env->env_id || parent == 0)) {
         ipc_send(parent, exit_code, 0, 0);
@@ -22,23 +23,35 @@ void exit(void)
 }
 #else
 // use struct Env
-int exit_with_exit_code(void)
+void exit(void)
 {
-    // After fs is ready (lab5), all our open files should be closed before dying.
 #if !defined(LAB) || LAB >= 5
     close_all();
 #endif
-    return syscall_env_destroy_with_exit_code(0);
+    debugk_user("function exit() is called in user/lib/libos.c");
+    syscall_set_exit_code(0, exit_code);
+    syscall_env_destroy(0);
+    user_panic("unreachable code");
+}
+void just_exit(void)
+{
+#if !defined(LAB) || LAB >= 5
+    close_all();
+#endif
+    syscall_env_destroy(0);
     user_panic("unreachable code");
 }
 #endif
+
 #else
+// use IPC
 void exit(void)
 {
-    // After fs is ready (lab5), all our open files should be closed before dying.
 #if !defined(LAB) || LAB >= 5
     close_all();
 #endif
+    debugk_user("function exit() is called in user/lib/libos.c");
+    debugk_user("PROGRAM %d EXIT !", syscall_getenvid());
     syscall_env_destroy(0);
     user_panic("unreachable code");
 }

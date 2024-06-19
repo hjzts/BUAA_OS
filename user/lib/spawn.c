@@ -186,7 +186,7 @@ int spawn(char* prog, char** argv)
         goto err;
     }
 
-    // debugf("spawn: father %x, child %x\n", syscall_getenvid(), child);
+    debugk_user("IN function spawn() in user/lib/spawn.c : father %x, child %x", syscall_getenvid(), child);
 
     /**
      * 下面是我写的
@@ -282,6 +282,7 @@ int spawn(char* prog, char** argv)
         goto err2;
     }
     // debugk_user("IN user/lib/spawn.c spawn(), the <<return value>> is %d", child);
+    // debugk_user("IN function spawn() in user/lib/spawn.c,thel local variable <<child>> %x", child);
     return child;
 
 err2:

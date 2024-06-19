@@ -50,7 +50,10 @@ u_int sys_getenvid(void)
 {
     return curenv->env_id;
 }
-
+u_int sys_get_parent_envid(void)
+{
+    return curenv->env_parent_id;
+}
 /* Overview:
  *   Give up remaining CPU time slice for 'curenv'.
  *
@@ -82,15 +85,40 @@ void __attribute__((noreturn)) sys_yield(void)
  *  Returns the original error if underlying calls fail.
  */
 #ifdef RETURN_VALUE
+#ifndef IPC
+// 设置父进程的exit_code，因为都要exit，肯定只有设置父进程的才有用，所以也不需要其他指示
+int sys_set_exit_code(u_int envid, int exit_code)
+{
+    debugk("function sys_set_exit_code is called in kern/syscall_all.c , and the envid is %x, the exit_code is %d", envid, exit_code);
+    struct Env *e, *p;
+    try(envid2env(envid, &e, 1));
+    int parent = e->env_parent_id;
+    debugk("IN function sys_set_exit_code, the local variable <<parent>> is %x", parent);
+    try(envid2env(parent, &p, 0));
+    p->env_exit_code = exit_code;
+    debugk("the parent exit_code is %d", p->env_exit_code);
+    return 0;
+}
+int sys_get_exit_code(u_int envid, int* exit_code)
+{
+    struct Env* e;
+    try(envid2env(envid, &e, 1));
+    debugk("function sys_get_exit_code is called in kern/syscall_all.c , and the envid is %x", e->env_id);
+    *exit_code = e->env_exit_code;
+    return 0;
+}
+#endif
+// 本来想改的，后来没改了，先留着吧
 int sys_env_destroy(u_int envid)
 {
     struct Env* e;
     try(envid2env(envid, &e, 1));
 
     shellk("[%08x] destroying %08x\n", curenv->env_id, e->env_id);
-    int exit_code = e->env_exit_code;
+    // int exit_code = e->env_exit_code;
     env_destroy(e);
-    return exit_code;
+    // return exit_code;
+    return 0;
 }
 #else
 int sys_env_destroy(u_int envid)
@@ -271,7 +299,7 @@ int sys_exofork(void)
 
     /* Step 1: Allocate a new env using 'env_alloc'. */
     /* Exercise 4.9: Your code here. (1/4) */
-    debugk("sys_exofork function is called");
+    // debugk("sys_exofork function is called");
     try(env_alloc(&e, curenv->env_id));
     // debugk("env_alloc is ok in function sys_exofork in kern/syscall_all.c");
 
@@ -611,6 +639,7 @@ void* syscall_table[MAX_SYSNO] = {
     [SYS_putchar] = sys_putchar,
     [SYS_print_cons] = sys_print_cons,
     [SYS_getenvid] = sys_getenvid,
+    [SYS_get_parent_envid] = sys_get_parent_envid,
     [SYS_yield] = sys_yield,
     [SYS_env_destroy] = sys_env_destroy,
     [SYS_set_tlb_mod_entry] = sys_set_tlb_mod_entry,
@@ -626,7 +655,13 @@ void* syscall_table[MAX_SYSNO] = {
     [SYS_cgetc] = sys_cgetc,
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
+#ifdef RETURN_VALUE
+#ifndef IPC
+    [SYS_set_exit_code] = sys_set_exit_code,
+    [SYS_get_exit_code] = sys_get_exit_code,
+#endif
     [SYS_get_return_value] = sys_get_return_value,
+#endif
 };
 
 /* Overview:
