@@ -126,7 +126,7 @@ int parsecmd(char** argv, int* rightpipe)
             // 结束就返回
             return argc;
         case 'w':
-            // word 就保存在 argv 中
+            // 是 word 就保存在 argv 中
             if (argc >= MAXARGS) {
                 debugf("too many arguments\n");
                 exit();

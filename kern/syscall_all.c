@@ -81,6 +81,18 @@ void __attribute__((noreturn)) sys_yield(void)
  *  Returns 0 on success.
  *  Returns the original error if underlying calls fail.
  */
+#ifdef RETURN_VALUE
+int sys_env_destroy(u_int envid)
+{
+    struct Env* e;
+    try(envid2env(envid, &e, 1));
+
+    shellk("[%08x] destroying %08x\n", curenv->env_id, e->env_id);
+    int exit_code = e->env_exit_code;
+    env_destroy(e);
+    return exit_code;
+}
+#else
 int sys_env_destroy(u_int envid)
 {
     struct Env* e;
@@ -90,17 +102,7 @@ int sys_env_destroy(u_int envid)
     env_destroy(e);
     return 0;
 }
-
-int sys_env_destroy_with_exit_code(u_int envid) {
-    struct Env* e;
-    try(envid2env(envid, &e, 1));
-
-    shellk("[%08x] destroying %08x\n", curenv->env_id, e->env_id);
-    int exit_code = e->env_exit_code;
-    env_destroy(e);
-    return exit_code;
-}
-
+#endif
 /* Overview:
  *   Register the entry of user space TLB Mod handler of 'envid'.
  *
@@ -594,7 +596,7 @@ int sys_read_dev(u_int va, u_int pa, u_int len)
     return -E_INVAL;
 }
 
-// get the return value , the envid 's env -> trapframe 's regs[2] 
+// get the return value , the envid 's env -> trapframe 's regs[2]
 int sys_get_return_value(u_int envid)
 {
     struct Env* e;
@@ -625,7 +627,6 @@ void* syscall_table[MAX_SYSNO] = {
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
     [SYS_get_return_value] = sys_get_return_value,
-    [SYS_env_destroy_with_exit_code] = sys_env_destroy_with_exit_code,
 };
 
 /* Overview:

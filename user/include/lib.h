@@ -77,8 +77,13 @@ void ipc_send(u_int whom, u_int val, const void* srcva, u_int perm);
 u_int ipc_recv(u_int* whom, void* dstva, u_int* perm);
 
 // wait.c
+// #define RETURN_VALUE
+
+#ifdef RETURN_VALUE
+int wait(u_int envid);
+#else
 void wait(u_int envid);
-int wait_return_value(u_int envid);
+#endif
 
 // console.c
 int opencons(void);

@@ -2,8 +2,12 @@
 #include <lib.h>
 #include <mmu.h>
 
-int return_value;
-void exit_and_send(void)
+#ifdef RETURN_VALUE
+#define IPC
+int exit_code;
+#ifdef IPC
+// use ipc
+void exit(void)
 {
     // After fs is ready (lab5), all our open files should be closed before dying.
 #if !defined(LAB) || LAB >= 5
@@ -11,12 +15,13 @@ void exit_and_send(void)
 #endif
     int parent = env->env_parent_id;
     if (!(parent == env->env_id || parent == 0)) {
-        ipc_send(parent, return_value, 0, 0);
+        ipc_send(parent, exit_code, 0, 0);
     }
     syscall_env_destroy(0);
     user_panic("unreachable code");
 }
-
+#else
+// use struct Env
 int exit_with_exit_code(void)
 {
     // After fs is ready (lab5), all our open files should be closed before dying.
@@ -26,7 +31,8 @@ int exit_with_exit_code(void)
     return syscall_env_destroy_with_exit_code(0);
     user_panic("unreachable code");
 }
-
+#endif
+#else
 void exit(void)
 {
     // After fs is ready (lab5), all our open files should be closed before dying.
@@ -36,6 +42,7 @@ void exit(void)
     syscall_env_destroy(0);
     user_panic("unreachable code");
 }
+#endif
 
 const volatile struct Env* env;
 extern int main(int, char**);
@@ -47,13 +54,15 @@ void libmain(int argc, char** argv)
 
     // call user main routine
 
-    // main(argc, argv);
-
-    return_value = main(argc, argv);
+#ifdef RETURN_VALUE
+    exit_code = main(argc, argv);
+#else
+    main(argc, argv);
+#endif
     // int parent = env->env_parent_id;
-    // ipc_send(parent, return_value, 0, 0);
+    // ipc_send(parent, exit_code, 0, 0);
 
-    // debugk_user("the return value is %d", return_value);
+    // debugk_user("the return value is %d", exit_code);
     // exit gracefully 优雅？？？
     exit();
 }
