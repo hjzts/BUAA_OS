@@ -127,7 +127,7 @@ static void duppage(u_int envid, u_int vpn)
  */
 int fork(void)
 {
-    debugk_user("function fork is called in user/lib/fork.c");
+    // debugk_user("function fork() is called in user/lib/fork.c");
     u_int child;
     u_int i;
 

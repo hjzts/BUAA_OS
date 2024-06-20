@@ -28,6 +28,8 @@ enum {
 #ifndef IPC
     SYS_set_exit_code,
     SYS_get_exit_code,
+    SYS_set_condition,
+    SYS_get_condition,
 #endif
     SYS_get_return_value,
 #endif

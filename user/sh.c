@@ -106,7 +106,7 @@ int gettoken(char* s, char** p1)
     // 是为了设置在第一次调用时初始化nc, np1,np2的值
     if (s) {
         nc = _gettoken(s, &np1, &np2);
-        debugk_user("IN user/sh.c gettoken(), the local <<nc>> is %c, <<np1>> is %s", nc, np1);
+        // debugk_user("IN user/sh.c gettoken(), the local <<nc>> is %c, <<np1>> is %s", nc, np1);
         return 0;
     }
     c = nc;
@@ -121,7 +121,7 @@ int gettoken(char* s, char** p1)
 // return: argc
 int parsecmd(char** argv, int* rightpipe)
 {
-    debugk_user("function parsecmd() is called in user/sh.c");
+    // debugk_user("function parsecmd() is called in user/sh.c");
     int argc = 0;
     while (1) {
         char* t;
@@ -139,9 +139,6 @@ int parsecmd(char** argv, int* rightpipe)
             if (argc >= MAXARGS) {
                 debugf("too many arguments\n");
                 exit();
-            }
-            if ((is_and && !condition) || (is_or && condition)) {
-                break;
             }
             argv[argc++] = t;
             break;
@@ -271,7 +268,7 @@ int parsecmd(char** argv, int* rightpipe)
             break;
         case 'a':;
             // and
-            debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is &&");
+            // debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is &&");
             left = fork();
             if (left > 0) {
                 // 让父进程暂停，直到子进程结束
@@ -285,10 +282,12 @@ int parsecmd(char** argv, int* rightpipe)
                 }
                 is_and = 1;
                 is_or = 0;
+                debugk_user("IN user/sh.c parsecmd(), the env is %x, and the condition is %d\n", syscall_getenvid(), condition);
+                syscall_set_condition(0, condition);
                 debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
                 return parsecmd(argv, rightpipe);
             } else {
-                debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
+                // debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
                 return argc;
             }
             // command1 && command2, command2 is executed if and only if command1 returns 0
@@ -309,10 +308,12 @@ int parsecmd(char** argv, int* rightpipe)
                 }
                 is_and = 0;
                 is_or = 1;
+                debugk_user("IN user/sh.c parsecmd(), the env is %x, and the condition is %d\n", syscall_getenvid(), condition);
+                syscall_set_condition(0, !condition);
                 debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
                 return parsecmd(argv, rightpipe);
             } else {
-                debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
+                // debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
                 return argc;
             }
             // command1 || command2, command2 is executed if and only if command1 returns a non-zero value
@@ -325,20 +326,26 @@ int parsecmd(char** argv, int* rightpipe)
 // *s,也就是读入的命令字符串：buf
 void runcmd(char* s)
 {
-    debugk_user("function runcmd is called in user/sh.c");
+    // debugk_user("function runcmd is called in user/sh.c");
     // 只有第一次调用gettoken，第一个参数*s才不是0，是为了初始化gettoken中的静态变量
     gettoken(s, 0);
     char* argv[MAXARGS];
     int rightpipe = 0;
     int argc = parsecmd(argv, &rightpipe);
 
-    debugk_user("IN user/sh.c runcmd() the function <<parsecmd>> is called; argc=%d, the argv is :", argc);
+    // debugk_user("IN user/sh.c runcmd() the function <<parsecmd>> is called; argc=%d, the argv is :", argc);
     for (int i = 0; i < argc; i++) {
         debugk_user("{%s} ", argv[i]);
     }
 
     if (argc == 0) {
         return;
+    }
+    int condition;
+    syscall_get_condition(0, &condition);
+    debugk_user("IN user/sh.c runcmd(), the env's parent is %x, and the condition is %d\n", syscall_get_parent_envid(), condition);
+    if (condition == 0) {
+        just_exit();
     }
     argv[argc] = 0;
 
@@ -431,11 +438,11 @@ int main(int argc, char** argv)
     printf("::                  MOS Hugo Shell 2024                    ::\n");
     printf("::                                                         ::\n");
     printf(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n");
-    // printf("            _/    _/  _/    _/    _/_/_/    _/_/             \n");
-    // printf("           _/    _/  _/    _/  _/        _/    _/            \n");
-    // printf("          _/_/_/_/  _/    _/  _/  _/_/  _/    _/             \n");
-    // printf("         _/    _/  _/    _/  _/    _/  _/    _/              \n");
-    // printf("        _/    _/    _/_/      _/_/_/    _/_/                 \n");
+    printf("            _/    _/  _/    _/    _/_/_/    _/_/             \n");
+    printf("           _/    _/  _/    _/  _/        _/    _/            \n");
+    printf("          _/_/_/_/  _/    _/  _/  _/_/  _/    _/             \n");
+    printf("         _/    _/  _/    _/  _/    _/  _/    _/              \n");
+    printf("        _/    _/    _/_/      _/_/_/    _/_/                 \n");
     ARGBEGIN
     {
     case 'i':
@@ -475,7 +482,7 @@ int main(int argc, char** argv)
         is_first_cmd = 1;
         // debugk_user("IN sh.c main() the local variable <<buf>> is %s", buf);
         process_comments(buf, sizeof buf);
-        debugk_user("IN sh.c main() the local variable <<buf>> after process_comments is %s", buf);
+        // debugk_user("IN sh.c main() the local variable <<buf>> after process_comments is %s", buf);
         if (buf[0] == '#') {
             continue;
         }

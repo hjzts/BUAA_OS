@@ -89,22 +89,39 @@ void __attribute__((noreturn)) sys_yield(void)
 // 设置父进程的exit_code，因为都要exit，肯定只有设置父进程的才有用，所以也不需要其他指示
 int sys_set_exit_code(u_int envid, int exit_code)
 {
-    debugk("function sys_set_exit_code is called in kern/syscall_all.c , and the envid is %x, the exit_code is %d", envid, exit_code);
+    // debugk("function sys_set_exit_code is called in kern/syscall_all.c , and the envid is %x, the exit_code is %d", envid, exit_code);
     struct Env *e, *p;
     try(envid2env(envid, &e, 1));
     int parent = e->env_parent_id;
-    debugk("IN function sys_set_exit_code, the local variable <<parent>> is %x", parent);
+    // debugk("IN function sys_set_exit_code, the local variable <<parent>> is %x", parent);
     try(envid2env(parent, &p, 0));
     p->env_exit_code = exit_code;
-    debugk("the parent exit_code is %d", p->env_exit_code);
+    // debugk("the parent exit_code is %d", p->env_exit_code);
     return 0;
 }
 int sys_get_exit_code(u_int envid, int* exit_code)
 {
     struct Env* e;
     try(envid2env(envid, &e, 1));
-    debugk("function sys_get_exit_code is called in kern/syscall_all.c , and the envid is %x", e->env_id);
+    // debugk("function sys_get_exit_code is called in kern/syscall_all.c , and the envid is %x", e->env_id);
     *exit_code = e->env_exit_code;
+    return 0;
+}
+int sys_set_condition(u_int envid, int condition)
+{
+    struct Env* e;
+    try(envid2env(envid, &e, 1));
+    e->env_condition = condition;
+    return 0;
+}
+// 只有get parent的condition
+int sys_get_condition(u_int envid, int* condition)
+{
+    struct Env *e, *p;
+    try(envid2env(envid, &e, 1));
+    int parent = e->env_parent_id;
+    try(envid2env(parent, &p, 0));
+    *condition = p->env_condition;
     return 0;
 }
 #endif
@@ -318,6 +335,12 @@ int sys_exofork(void)
     /* Exercise 4.9: Your code here. (4/4) */
     e->env_status = ENV_NOT_RUNNABLE;
     e->env_pri = curenv->env_pri;
+#ifdef RETURN_VALUE
+#ifndef IPC
+    e->env_exit_code = 0;
+    e->env_condition = 1;
+#endif
+#endif
     return e->env_id;
 }
 
@@ -657,8 +680,10 @@ void* syscall_table[MAX_SYSNO] = {
     [SYS_read_dev] = sys_read_dev,
 #ifdef RETURN_VALUE
 #ifndef IPC
-    [SYS_set_exit_code] = sys_set_exit_code,
     [SYS_get_exit_code] = sys_get_exit_code,
+    [SYS_set_exit_code] = sys_set_exit_code,
+    [SYS_get_condition] = sys_get_condition,
+    [SYS_set_condition] = sys_set_condition,
 #endif
     [SYS_get_return_value] = sys_get_return_value,
 #endif

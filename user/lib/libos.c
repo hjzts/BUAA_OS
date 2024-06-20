@@ -13,7 +13,7 @@ void exit(void)
 #if !defined(LAB) || LAB >= 5
     close_all();
 #endif
-    debugk_user("function exit() is called in user/lib/libos.c");
+    // debugk_user("function exit() is called in user/lib/libos.c");
     int parent = env->env_parent_id;
     if (!(parent == env->env_id || parent == 0)) {
         ipc_send(parent, exit_code, 0, 0);
@@ -28,7 +28,7 @@ void exit(void)
 #if !defined(LAB) || LAB >= 5
     close_all();
 #endif
-    debugk_user("function exit() is called in user/lib/libos.c");
+    // debugk_user("function exit() is called in user/lib/libos.c");
     syscall_set_exit_code(0, exit_code);
     syscall_env_destroy(0);
     user_panic("unreachable code");
@@ -50,7 +50,7 @@ void exit(void)
 #if !defined(LAB) || LAB >= 5
     close_all();
 #endif
-    debugk_user("function exit() is called in user/lib/libos.c");
+    // debugk_user("function exit() is called in user/lib/libos.c");
     debugk_user("PROGRAM %d EXIT !", syscall_getenvid());
     syscall_env_destroy(0);
     user_panic("unreachable code");

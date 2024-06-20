@@ -41,6 +41,14 @@ int syscall_get_exit_code(u_int envid, int* exit_code)
 {
     return msyscall(SYS_get_exit_code, envid, exit_code);
 }
+int syscall_set_condition(u_int envid, int condition)
+{
+    return msyscall(SYS_set_condition, envid, condition);
+}
+int syscall_get_condition(u_int envid, int* condition)
+{
+    return msyscall(SYS_get_condition, envid, condition);
+}
 #endif
 int syscall_env_destroy(u_int envid)
 {
