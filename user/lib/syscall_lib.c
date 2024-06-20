@@ -21,7 +21,8 @@ u_int syscall_getenvid(void)
     return msyscall(SYS_getenvid);
 }
 
-u_int syscall_get_parent_envid(void) {
+u_int syscall_get_parent_envid(void)
+{
     return msyscall(SYS_get_parent_envid);
 }
 
@@ -31,6 +32,10 @@ void syscall_yield(void)
 }
 
 #ifdef RETURN_VALUE
+int syscall_get_return_value(u_int envid)
+{
+    return msyscall(SYS_get_return_value, envid);
+}
 #ifndef IPC
 // 将exit_code设置到父进程的env->env_exit_code处
 int syscall_set_exit_code(u_int envid, int exit_code)
@@ -132,9 +137,4 @@ int syscall_read_dev(void* va, u_int dev, u_int size)
     // }
     // 这里虽然参数va是void*,但是传入msyscall的参数是u_int,类型自动转换了
     return msyscall(SYS_read_dev, va, dev, size);
-}
-
-int syscall_get_return_value(u_int envid)
-{
-    return msyscall(SYS_get_return_value, envid);
 }

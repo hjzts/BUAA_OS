@@ -271,7 +271,8 @@ int parsecmd(char** argv, int* rightpipe)
             // debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is &&");
             left = fork();
             if (left > 0) {
-                // 让父进程暂停，直到子进程结束
+// 让父进程暂停，直到子进程结束
+#ifdef RETURN_VALUE
                 int exit_code = wait(left);
                 debugk_user("IN user/sh.c parsecmd(), the local variable <<exit_code>> is %d of env %x", exit_code, syscall_getenvid());
                 if (is_first_cmd) {
@@ -285,6 +286,9 @@ int parsecmd(char** argv, int* rightpipe)
                 debugk_user("IN user/sh.c parsecmd(), the env is %x, and the condition is %d\n", syscall_getenvid(), condition);
                 syscall_set_condition(0, condition);
                 debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
+#else
+                wait(left);
+#endif
                 return parsecmd(argv, rightpipe);
             } else {
                 // debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
@@ -297,7 +301,8 @@ int parsecmd(char** argv, int* rightpipe)
             debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is ||");
             left = fork();
             if (left > 0) {
-                // 让父进程暂停，直到子进程结束
+// 让父进程暂停，直到子进程结束
+#ifdef RETURN_VALUE
                 int exit_code = wait(left);
                 debugk_user("IN user/sh.c parsecmd(), the local variable <<exit_code>> is %d of env %x", exit_code, syscall_getenvid());
                 if (is_first_cmd) {
@@ -311,6 +316,9 @@ int parsecmd(char** argv, int* rightpipe)
                 debugk_user("IN user/sh.c parsecmd(), the env is %x, and the condition is %d\n", syscall_getenvid(), condition);
                 syscall_set_condition(0, !condition);
                 debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
+#else
+                wait(left);
+#endif
                 return parsecmd(argv, rightpipe);
             } else {
                 // debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
@@ -341,12 +349,14 @@ void runcmd(char* s)
     if (argc == 0) {
         return;
     }
+#ifdef RETURN_VALUE
     int condition;
     syscall_get_condition(0, &condition);
     debugk_user("IN user/sh.c runcmd(), the env's parent is %x, and the condition is %d\n", syscall_get_parent_envid(), condition);
     if (condition == 0) {
         just_exit();
     }
+#endif
     argv[argc] = 0;
 
     // argv[0] 表示 命令本身所代表的二进制文件的名字
@@ -368,7 +378,11 @@ void runcmd(char* s)
     if (rightpipe) {
         wait(rightpipe);
     }
+#ifdef RETURN_VALUE
     just_exit();
+#else
+    exit();
+#endif
 }
 
 void readline(char* buf, u_int n)
