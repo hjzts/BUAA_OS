@@ -3,7 +3,7 @@
 #include <printk.h>
 
 // #define DEBUGK
-#define SHELL
+// #define SHELL
 // 可以注释，那就不会打印
 // #define RETURN_VALUE
 // 用于测试需要有子进程返回值时
