@@ -155,19 +155,27 @@ void serve_open(u_int envid, struct Fsreq_open* rq)
         ipc_send(envid, r, 0, 0);
         return;
     }
-
+    if ((rq->req_omode & O_EXCL)) {
+        if ((r = file_create(rq->req_path, &f)) < 0 && r == -E_FILE_EXISTS) {
+            // the file already exists
+            ipc_send(envid, r, 0, 0);
+            return;
+        } else {
+            ipc_send(envid, 1, 0, 0);
+            return;
+        }
+    }
     // 创建文件，E_NOT_FOUND 或者 dir_alloc_file失败
     if ((rq->req_omode & O_CREAT) && (r = file_create(rq->req_path, &f)) < 0 && r != -E_FILE_EXISTS) {
+        // if with -p , create recursively if the parent directory does not exist
+        if ((rq->req_omode & O_IGNORE_ERROR)) {
+            file_create_ignore_error(rq->req_path, &f);
+        }
         ipc_send(envid, r, 0, 0);
         return;
     }
-    if(r == -E_FILE_EXISTS) {
-        
-    }
-
     // Open the file.
     if ((r = file_open(rq->req_path, &f)) < 0) {
-
         ipc_send(envid, r, 0, 0);
         return;
     }
@@ -189,6 +197,10 @@ void serve_open(u_int envid, struct Fsreq_open* rq)
     o->o_mode = rq->req_omode;
     ff->f_fd.fd_omode = o->o_mode;
     ff->f_fd.fd_dev_id = devfile.dev_id;
+    if (rq->req_omode & O_MKDIR) {
+        debugf("dir !!\n");
+        f->f_type = FTYPE_DIR;
+    }
     ipc_send(envid, 0, o->o_ff, PTE_D | PTE_LIBRARY);
 }
 

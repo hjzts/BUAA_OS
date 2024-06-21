@@ -142,10 +142,10 @@ int sync(void);
 #define O_TRUNC 0x0200 /* truncate to zero length */
 
 #define O_APPEND 0x1000 /* append redirect */
-// #define O_MKDIR 0x2100 /* make directory , not regular file, with O_CREAT*/
 
 // Unimplemented open modes
 #define O_EXCL 0x0400 /* error if already exists */
 #define O_MKDIR 0x0800 /* create directory, not regular file */
+#define O_IGNORE_ERROR 0x0800 /* 和其他搭配使用，忽视【部分】错误，比如目录不存在则递归创建*/
 
 #endif

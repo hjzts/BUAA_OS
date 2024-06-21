@@ -2,19 +2,26 @@
 
 int flag[256];
 
-void mkdir(char* dirPath)
+int mkdir(char* dirPath)
 {
     int f;
-    if ((f = open(dirPath, O_EXCL)) == 0) {
-        
+    if ((f = open(dirPath, O_EXCL)) < 0) {
+        debugf("the dir is already exists");
+        return 1;
     }
-    if ((f = open(dirPath, O_MKDIR)) < 0) {
+    if (flag['p']) {
+        f = open(dirPath, O_CREAT | O_MKDIR | O_IGNORE_ERROR);
+    } else {
+        if ((f = open(dirPath, O_CREAT | O_MKDIR)) < 0) {
+            return 1;
+        }
     }
+    return 0;
 }
 
 void usage(void)
 {
-    printf("usage: mkdir [-] [dir]\n");
+    printf("usage: mkdir [-p] [dir]\n");
     exit();
 }
 int main(int argc, char** argv)
@@ -33,9 +40,11 @@ int main(int argc, char** argv)
     }
     ARGEND
 
-    for (int i = 0; i < argc; i++) {
-        mkdir(argv[i]);
+    if (argc == 0) {
+        usage();
+        return 1;
     }
-
-    return 0;
+    for (int i = 0; i < argc; i++) {
+        return mkdir(argv[i]);
+    }
 }

@@ -551,7 +551,7 @@ int dir_lookup(struct File* dir, char* name, struct File** file)
             // If we find the target file, set '*file' to it and set up its 'f_dir'
             // field.
             /* Exercise 5.8: Your code here. (3/3) */
-            // 或许下面的表格更加明显
+            // 或许下面的表述更加明显
             // if (!strcmp(f->f_name, name))
             if (strcmp(f->f_name, name) == 0) {
                 *file = f;
@@ -686,6 +686,73 @@ int walk_path(char* path, struct File** pdir, struct File** pfile, char* lastele
     *pfile = file;
     return 0;
 }
+int walk_path_ignore_error(char* path, struct File** pdir, struct File** pfile, char* lastelem)
+{
+    char* p;
+    char name[MAXNAMELEN];
+    struct File *dir, *file;
+    int r;
+
+    // start at the root.
+    path = skip_slash(path);
+    file = &super->s_root;
+    dir = 0;
+    name[0] = 0;
+
+    if (pdir) {
+        *pdir = 0;
+    }
+
+    *pfile = 0;
+
+    // find the target file by name recursively.
+    while (*path != '\0') {
+        dir = file;
+        p = path;
+        // [p, path]之间为当前递归所在的目录名/文件名
+        while (*path != '/' && *path != '\0') {
+            path++;
+        }
+
+        if (path - p >= MAXNAMELEN) {
+            return -E_BAD_PATH;
+        }
+
+        memcpy(name, p, path - p);
+        name[path - p] = '\0';
+        path = skip_slash(path);
+        if (dir->f_type != FTYPE_DIR) {
+            dir->f_type = FTYPE_DIR;
+        }
+
+        if ((r = dir_lookup(dir, name, &file)) < 0) {
+            // -E_NOT_FOUND 表示在dir中找不到file(按照name)
+            if (r == -E_NOT_FOUND) {
+                if (*path == '\0') {
+                    if (pdir) {
+                        *pdir = dir;
+                    }
+
+                    if (lastelem) {
+                        strcpy(lastelem, name);
+                    }
+                    *pfile = file;
+                    return 0;
+                } else {
+                    dir_alloc_file(dir, &file);
+                    strcpy(file->f_name, name);
+                }
+            }
+        }
+    }
+
+    if (pdir) {
+        *pdir = dir;
+    }
+
+    *pfile = file;
+    return 0;
+}
 
 // Overview:
 //  Open "path".
@@ -717,6 +784,22 @@ int file_create(char* path, struct File** file)
     if (r != -E_NOT_FOUND || dir == 0) {
         return r;
     }
+
+    if (dir_alloc_file(dir, &f) < 0) {
+        return r;
+    }
+
+    strcpy(f->f_name, name);
+    *file = f;
+    return 0;
+}
+int file_create_ignore_error(char* path, struct File** file)
+{
+    char name[MAXNAMELEN];
+    int r;
+    struct File *dir, *f;
+
+    r = walk_path_ignore_error(path, &dir, &f, name);
 
     if (dir_alloc_file(dir, &f) < 0) {
         return r;
