@@ -156,15 +156,15 @@ void serve_open(u_int envid, struct Fsreq_open* rq)
         return;
     }
     if ((rq->req_omode & O_EXCL)) {
-        if ((r = file_create(rq->req_path, &f)) < 0 && r == -E_FILE_EXISTS) {
+        if ((r = file_open(rq->req_path, &f)) == 0) {
             // the file already exists
-            ipc_send(envid, r, 0, 0);
-            return;
-        } else {
-            ipc_send(envid, 1, 0, 0);
+            ipc_send(envid, -E_FILE_EXISTS, 0, 0);
             return;
         }
+        ipc_send(envid, -E_NOT_FOUND, 0, 0);
+        return;
     }
+    // debugk_user("IN fs/serv.c serve_open(), the file/dir path is %s\n", rq->req_path);
     // 创建文件，E_NOT_FOUND 或者 dir_alloc_file失败
     if ((rq->req_omode & O_CREAT) && (r = file_create(rq->req_path, &f)) < 0 && r != -E_FILE_EXISTS) {
         // if with -p , create recursively if the parent directory does not exist

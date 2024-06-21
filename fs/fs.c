@@ -784,7 +784,6 @@ int file_create(char* path, struct File** file)
     if (r != -E_NOT_FOUND || dir == 0) {
         return r;
     }
-
     if (dir_alloc_file(dir, &f) < 0) {
         return r;
     }
