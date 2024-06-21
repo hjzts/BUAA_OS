@@ -20,6 +20,7 @@ int rm(char* path)
     fstat(fd, &st);
     if (st.st_isdir && !flag['r']) {
         printf("rm: cannot remove '%s': Is a directory\n", path);
+        return 1;
     }
     remove(path);
     close(fd);
