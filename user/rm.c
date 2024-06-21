@@ -11,7 +11,7 @@ int rm(char* path)
     if ((fd = open(path, O_RDONLY)) < 0) {
         if (flag['f'])
             return 0;
-        printf("rm: cannot remove %s: No such file or directory", path);
+        printf("rm: cannot remove '%s': No such file or directory\n", path);
         // debugf("the file or dir does not exists");
         return 1;
     }

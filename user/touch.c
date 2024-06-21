@@ -5,12 +5,12 @@ int touch(char* file)
     int f;
     // 表示文件已经存在，按照样例应该不会出现这种情况
     if ((f = open(file, O_EXCL)) == -E_FILE_EXISTS) {
-        debugf("the file is already exists");
+        // debugf("the file is already exists\n");
         close(f);
         return 1;
     }
     if ((f = open(file, O_CREAT)) < 0) {
-        debugf("touch: cannot touch %s: No such file or directory\n",file);
+        debugf("touch: cannot touch '%s': No such file or directory\n",file);
     } else {
         close(f);
     }

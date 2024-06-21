@@ -6,7 +6,7 @@ int mkdir(char* dirPath)
 {
     int f;
     if ((f = open(dirPath, O_EXCL)) == -E_FILE_EXISTS) {
-        printf("mkdir: cannot create directory %s: File exists", dirPath);
+        printf("mkdir: cannot create directory '%s': File exists\n", dirPath);
         return 1;
     }
     int size = strlen(dirPath);
@@ -23,7 +23,7 @@ int mkdir(char* dirPath)
         int f_tmp = open(dirPath, O_EXCL);
         dirPath[index] = '/';
         if (f_tmp == -E_NOT_FOUND) {
-            printf("mkdir: cannot create directory %s: No such file or directory\n", dirPath);
+            printf("mkdir: cannot create directory '%s': No such file or directory\n", dirPath);
             return 1;
         }
     }
