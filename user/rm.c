@@ -11,39 +11,18 @@ int rm(char* path)
     if ((fd = open(path, O_RDONLY)) < 0) {
         if (flag['f'])
             return 0;
-        debugf("rm: cannot remove %s: No such file or directory", path);
+        printf("rm: cannot remove %s: No such file or directory", path);
         // debugf("the file or dir does not exists");
         return 1;
     }
-    while ((n = readn(fd, &f, sizeof f)) == sizeof f) {
-        if (f.f_name[0]) {
-            if (f.f_type == FTYPE_DIR) {
-                if (flag['r']) {
-                    return rm_dir(path);
-                } else {
-                    debugf("rm: cannot remove %s: Is a directory", path);
-                    return 1;
-                }
-            } else {
-                return rm_file(path);
-            }
-        }
-    }
-    close(fd);
-    return 0;
-}
-// 此时必然已经存在了
-int rm_file(char* filePath)
-{
-    debugf("rm file!\n");
-    remove(filePath);
-    return 0;
-}
 
-int rm_dir(char* dirPath)
-{
-    debugf("rm dir!\n");
-    remove(dirPath);
+    struct Stat st;
+    fstat(fd, &st);
+    if (st.st_isdir && !flag['r']) {
+        printf("rm: cannot remove '%s': Is a directory\n", path);
+    }
+    remove(path);
+    close(fd);
     return 0;
 }
 
