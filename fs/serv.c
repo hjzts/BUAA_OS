@@ -198,7 +198,6 @@ void serve_open(u_int envid, struct Fsreq_open* rq)
     ff->f_fd.fd_omode = o->o_mode;
     ff->f_fd.fd_dev_id = devfile.dev_id;
     if (rq->req_omode & O_MKDIR) {
-        debugf("dir !!\n");
         f->f_type = FTYPE_DIR;
     }
     ipc_send(envid, 0, o->o_ff, PTE_D | PTE_LIBRARY);

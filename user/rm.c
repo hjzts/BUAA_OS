@@ -18,27 +18,16 @@ int rm(char* path)
         if (f.f_name[0]) {
             if (f.f_type == FTYPE_DIR) {
                 if (flag['r']) {
-                    return rm_dir(path);
+                    f.f_name[0] = '\0';
                 } else {
                     debugf("rm: cannot remove %s: Is a directory", path);
                     return 1;
                 }
             } else {
-                return rm_file(path);
+                f.f_name[0] = '\0';
             }
         }
     }
-    return 0;
-}
-// 此时必然已经存在了
-int rm_file(char* filePath)
-{
-
-    return 0;
-}
-
-int rm_dir(char* dirPath)
-{
     return 0;
 }
 

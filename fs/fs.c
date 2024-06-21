@@ -292,7 +292,7 @@ void read_super(void)
         user_panic("bad file system magic number %x %x", super->s_magic, FS_MAGIC);
     }
 
-    debugk_user("debug: 333 in read_super");
+    // debugk_user("debug: 333 in read_super");
     // Step 3: validate disk size.
     if (super->s_nblocks > DISKMAX / BLOCK_SIZE) {
         user_panic("file system is too large");
