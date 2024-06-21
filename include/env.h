@@ -53,7 +53,7 @@ struct Env {
 #ifdef RETURN_VALUE
 #ifndef IPC
     u_int env_exit_code; // 函数返回值
-    u_int env_condition; // 用于条件指令执行
+    // u_int env_condition; // 用于条件指令执行
 #endif
 #endif
 };

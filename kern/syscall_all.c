@@ -107,23 +107,6 @@ int sys_get_exit_code(u_int envid, int* exit_code)
     *exit_code = e->env_exit_code;
     return 0;
 }
-int sys_set_condition(u_int envid, int condition)
-{
-    struct Env* e;
-    try(envid2env(envid, &e, 1));
-    e->env_condition = condition;
-    return 0;
-}
-// 只有get parent的condition
-int sys_get_condition(u_int envid, int* condition)
-{
-    struct Env *e, *p;
-    try(envid2env(envid, &e, 1));
-    int parent = e->env_parent_id;
-    try(envid2env(parent, &p, 0));
-    *condition = p->env_condition;
-    return 0;
-}
 #endif
 // 本来想改的，后来没改了，先留着吧
 int sys_env_destroy(u_int envid)
@@ -338,7 +321,6 @@ int sys_exofork(void)
 #ifdef RETURN_VALUE
 #ifndef IPC
     e->env_exit_code = 0;
-    e->env_condition = 1;
 #endif
 #endif
     return e->env_id;
@@ -682,8 +664,6 @@ void* syscall_table[MAX_SYSNO] = {
 #ifndef IPC
     [SYS_get_exit_code] = sys_get_exit_code,
     [SYS_set_exit_code] = sys_set_exit_code,
-    [SYS_get_condition] = sys_get_condition,
-    [SYS_set_condition] = sys_set_condition,
 #endif
     [SYS_get_return_value] = sys_get_return_value,
 #endif

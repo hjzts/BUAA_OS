@@ -56,6 +56,7 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe* tf)
 
     // Step 7: Return to the faulting routine.
     int r = syscall_set_trapframe(0, tf);
+    // debugf("\nr is %d\n\n", r);
     user_panic("syscall_set_trapframe returned %d", r);
 }
 
@@ -65,7 +66,7 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe* tf)
  * unshared memory from a parent and its children.
  *
  * Post-Condition:
- *  	可写页面：
+ *     可写页面：
  *   If the virtual page 'vpn' has 'PTE_D' and doesn't has 'PTE_LIBRARY', both our original virtual
  *   page and 'envid''s newly-mapped virtual page should be marked 'PTE_COW' and without 'PTE_D',
  *   while the other permission bits are kept.

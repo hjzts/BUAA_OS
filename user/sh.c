@@ -133,6 +133,8 @@ int parsecmd(char** argv, int* rightpipe)
             if ((is_and && !condition) || (is_or && condition)) {
                 return 0;
             }
+            is_and = 0;
+            is_or = 0;
             return argc;
         case 'w':
             // 是 word 就保存在 argv 中
@@ -283,9 +285,6 @@ int parsecmd(char** argv, int* rightpipe)
                 }
                 is_and = 1;
                 is_or = 0;
-                debugk_user("IN user/sh.c parsecmd(), the env is %x, and the condition is %d\n", syscall_getenvid(), condition);
-                syscall_set_condition(0, condition);
-                debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
 #else
                 wait(left);
 #endif
@@ -313,9 +312,6 @@ int parsecmd(char** argv, int* rightpipe)
                 }
                 is_and = 0;
                 is_or = 1;
-                debugk_user("IN user/sh.c parsecmd(), the env is %x, and the condition is %d\n", syscall_getenvid(), condition);
-                syscall_set_condition(0, !condition);
-                debugk_user("IN user/sh.c parsecmd(), the local variable <<condition>> is %d", condition);
 #else
                 wait(left);
 #endif
@@ -350,10 +346,7 @@ void runcmd(char* s)
         return;
     }
 #ifdef RETURN_VALUE
-    int condition;
-    syscall_get_condition(0, &condition);
-    debugk_user("IN user/sh.c runcmd(), the env's parent is %x, and the condition is %d\n", syscall_get_parent_envid(), condition);
-    if (condition == 0) {
+    if ((is_and && condition == 0) || (is_or && condition == 1)) {
         just_exit();
     }
 #endif

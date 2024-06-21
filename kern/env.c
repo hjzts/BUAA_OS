@@ -281,7 +281,6 @@ int env_alloc(struct Env** new, u_int parent_id)
     #ifdef RETURN_VALUE
     #ifndef IPC
     e->env_exit_code = 0;
-    e->env_condition = 1;
     #endif
     #endif
     /* Exercise 3.4: Your code here. (3/4) */
