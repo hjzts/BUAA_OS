@@ -7,7 +7,8 @@ int rm(char* path)
     // file path OR dir path
     int fd, n;
     struct File f;
-    if ((fd = open(path, O_EXCL)) == 0) {
+
+    if ((fd = open(path, O_RDONLY)) < 0) {
         if (flag['f'])
             return 0;
         debugf("rm: cannot remove %s: No such file or directory", path);
@@ -18,23 +19,42 @@ int rm(char* path)
         if (f.f_name[0]) {
             if (f.f_type == FTYPE_DIR) {
                 if (flag['r']) {
-                    f.f_name[0] = '\0';
+                    return rm_dir(path);
                 } else {
                     debugf("rm: cannot remove %s: Is a directory", path);
                     return 1;
                 }
             } else {
-                f.f_name[0] = '\0';
+                return rm_file(path);
             }
         }
     }
+    close(fd);
+    return 0;
+}
+// 此时必然已经存在了
+int rm_file(char* filePath)
+{
+    debugf("rm file!\n");
+    remove(filePath);
+    return 0;
+}
+
+int rm_dir(char* dirPath)
+{
+    debugf("rm dir!\n");
+    remove(dirPath);
     return 0;
 }
 
 void usage(void)
 {
     printf("usage: rm [-rf] [file|dir]\n");
+#ifdef RETURN_VALUE
+    exit_with_exit_code(1);
+#else
     exit();
+#endif
 }
 int main(int argc, char** argv)
 {

@@ -16,13 +16,18 @@ int mkdir(char* dirPath)
             return 1;
         }
     }
+    close(f);
     return 0;
 }
 
 void usage(void)
 {
     printf("usage: mkdir [-p] [dir]\n");
+#ifdef RETURN_VALUE
+    exit_with_exit_code(1);
+#else
     exit();
+#endif
 }
 int main(int argc, char** argv)
 {

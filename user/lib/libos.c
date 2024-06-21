@@ -33,6 +33,16 @@ void exit(void)
     syscall_env_destroy(0);
     user_panic("unreachable code");
 }
+void exit_with_exit_code(int exit_code)
+{
+#if !defined(LAB) || LAB >= 5
+    close_all();
+#endif
+    // debugk_user("function exit() is called in user/lib/libos.c");
+    syscall_set_exit_code(0, exit_code);
+    syscall_env_destroy(0);
+    user_panic("unreachable code");
+}
 void just_exit(void)
 {
 #if !defined(LAB) || LAB >= 5
