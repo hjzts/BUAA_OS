@@ -297,8 +297,8 @@ int parsecmd(char** argv, int* rightpipe)
                 if (is_first_cmd) {
                     is_first_cmd = 0;
                     condition = exit_code == 0;
-                } else if (!condition) {
-                    condition = exit_code == 0;
+                } else {
+                    condition &= (exit_code == 0);
                 }
                 is_and = 1;
                 is_or = 0;
@@ -323,9 +323,9 @@ int parsecmd(char** argv, int* rightpipe)
                 debugk_user("IN user/sh.c parsecmd(), the local variable <<exit_code>> is %d of env %x", exit_code, syscall_getenvid());
                 if (is_first_cmd) {
                     is_first_cmd = 0;
-                    condition = exit_code == 0;
-                } else if (!condition) {
-                    condition = exit_code == 0;
+                    condition = (exit_code == 0);
+                } else {
+                    condition |= (exit_code == 0);
                 }
                 is_and = 0;
                 is_or = 1;
@@ -385,7 +385,7 @@ void runcmd(char* s)
     } else {
         debugf("spawn %s: %d\n", argv[0], child);
 #ifdef RETURN_VALUE
-        // syscall_set_exit_code(0, 1);
+        syscall_set_exit_code(0, 1);
 #endif
     }
     if (rightpipe) {
