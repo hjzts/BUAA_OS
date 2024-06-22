@@ -6,6 +6,7 @@ int is_first_cmd = 1;
 int condition = 0;
 int is_and = 0;
 int is_or = 0;
+int in_back_quote = 0;
 // 有运行的是设置为1
 #define WHITESPACE " \t\r\n"
 #define SYMBOLS "<|>&;()`\""
@@ -55,6 +56,13 @@ int _gettoken(char* s, char** p1, char** p2)
         }
         *s++ = 0;
         *p2 = s;
+        while (!strchr(WHITESPACE, *s)) {
+            s++;
+        }
+
+        // while (*s != 0 && !strchr(WHITESPACE, *s)) {
+        //     s++;
+        // }
         // char* tmp = *p1;
         // while (*tmp) {
         //     debugf("{%c} ", *tmp);
