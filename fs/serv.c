@@ -197,6 +197,9 @@ void serve_open(u_int envid, struct Fsreq_open* rq)
     o->o_mode = rq->req_omode;
     ff->f_fd.fd_omode = o->o_mode;
     ff->f_fd.fd_dev_id = devfile.dev_id;
+    if (rq->req_omode & O_APPEND) {
+        ff->f_fd.fd_offset = ff->f_file.f_size;
+    }
     if (rq->req_omode & O_MKDIR) {
         f->f_type = FTYPE_DIR;
     }
