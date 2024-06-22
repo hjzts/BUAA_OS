@@ -272,16 +272,16 @@ int parsecmd(char** argv, int* rightpipe)
         case '+':
             // Append redirect
             debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is >> ");
-            if (gettoken(0, &t) != 'w') {
-                debugf("syntax error: >> not followed by word\n");
-                exit();
-            }
-            if ((fd = open(t, O_APPEND | O_WRONLY)) < 0) {
-                debugf("failed to open '%s'\n", t);
-                exit();
-            }
-            dup(fd, 1);
-            close(fd);
+            // if (gettoken(0, &t) != 'w') {
+            //     debugf("syntax error: >> not followed by word\n");
+            //     exit();
+            // }
+            // if ((fd = open(t, O_APPEND | O_WRONLY)) < 0) {
+            //     debugf("failed to open '%s'\n", t);
+            //     exit();
+            // }
+            // dup(fd, 1);
+            // close(fd);
             break;
         case 'a':;
             // and
