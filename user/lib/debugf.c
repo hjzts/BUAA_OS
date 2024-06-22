@@ -62,7 +62,8 @@ void _user_panic(const char* file, int line, const char* fmt, ...)
     va_end(ap);
     debugf("\n");
 #ifdef RETURN_VALUE
-    exit_with_exit_code(1);
+    exit();
+    // exit_with_exit_code(1);
 #else
     exit();
 #endif

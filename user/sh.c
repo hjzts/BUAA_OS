@@ -385,7 +385,7 @@ void runcmd(char* s)
     } else {
         debugf("spawn %s: %d\n", argv[0], child);
 #ifdef RETURN_VALUE
-        syscall_set_exit_code(0, 1);
+        // syscall_set_exit_code(0, 1);
 #endif
     }
     if (rightpipe) {
