@@ -9,6 +9,8 @@
 // 用于测试需要有子进程返回值时
 // #define IPC
 // 用来表示使用IPC的方法来获取返回值
+#define APPEND 
+// 表示输出append重定向
 
 #ifdef DEBUGK
 #define debugk(fmt, ...)                      \

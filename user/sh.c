@@ -194,7 +194,7 @@ int parsecmd(char** argv, int* rightpipe)
             // utilize 'debugf' to print relevant messages,
             // and subsequently terminate the process using 'exit'.
             /* Exercise 6.5: Your code here. (2/3) */
-            if ((fd = open(t, O_WRONLY)) < 0) {
+            if ((fd = open(t, O_WRONLY | O_TRUNC)) < 0) {
                 // user_panic("> open failed");
                 debugf("failed to open '%s'\n", t);
                 exit();
@@ -272,16 +272,18 @@ int parsecmd(char** argv, int* rightpipe)
         case '+':
             // Append redirect
             debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is >> ");
-            // if (gettoken(0, &t) != 'w') {
-            //     debugf("syntax error: >> not followed by word\n");
-            //     exit();
-            // }
-            // if ((fd = open(t, O_APPEND | O_WRONLY)) < 0) {
-            //     debugf("failed to open '%s'\n", t);
-            //     exit();
-            // }
-            // dup(fd, 1);
-            // close(fd);
+#ifdef APPEND
+            if (gettoken(0, &t) != 'w') {
+                debugf("syntax error: >> not followed by word\n");
+                exit();
+            }
+            if ((fd = open(t, O_APPEND | O_WRONLY | O_CREAT)) < 0) {
+                debugf("failed to open '%s'\n", t);
+                exit();
+            }
+            dup(fd, 1);
+            close(fd);
+#endif
             break;
         case 'a':;
             // and
