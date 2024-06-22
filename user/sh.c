@@ -2,11 +2,20 @@
 #include <lib.h>
 // 需要保证这两个变量只在sh中fork的关于每一行的进程在使用，其他进程使用了也没用
 // 额，子进程可以读还是可以的
-int is_first_cmd = 1;
 int condition = 0;
 int is_and = 0;
 int is_or = 0;
 int in_back_quote = 0;
+int is_background_cmd = 0;
+// 用于在后面设置env_id的判断
+int job_cnt = 1;
+// 本来打算用List的，但是限定了最多只有16个job，直接数组(用数组的话其实可以不用job_id，无所谓。。)！
+struct Job {
+    int job_id;
+    int status; // 不需要使用char*，共有两种状态Running 和 Done，分别对应1和0，输出的时候调一下即可
+    int env_id;
+    char cmd[1024]; // 使用 strcpy 来拷贝buf的内容，注意注释也需要拷贝(理论上是的，测不测就不知道了)。
+} job[16];
 // 有运行的是设置为1
 #define WHITESPACE " \t\r\n"
 #define SYMBOLS "<|>&;()`\""
@@ -47,33 +56,36 @@ int _gettoken(char* s, char** p1, char** p2)
     if (*s == 0) {
         return 0;
     }
-    // 引号单独处理
-    if (*s == '\"') {
-        *s++ = 0;
-        *p1 = s;
-        while (*s && *s != '\"') {
-            s++;
-        }
-        *s++ = 0;
-        *p2 = s;
-        while (!strchr(WHITESPACE, *s)) {
-            s++;
-        }
-
-        // while (*s != 0 && !strchr(WHITESPACE, *s)) {
-        //     s++;
-        // }
-        // char* tmp = *p1;
-        // while (*tmp) {
-        //     debugf("{%c} ", *tmp);
-        //     tmp++;
-        // }
-        return 's';
-    }
+    // 引号不能单独处理，需要考虑和``等优先级相同
     // 如果*s 是特殊字符
     if (strchr(SYMBOLS, *s)) {
         int t = *s;
         *p1 = s;
+        if (*s == '\"') {
+            *s++ = 0;
+            *p1 = s;
+            while (*s && *s != '\"') {
+                s++;
+            }
+            *s++ = 0;
+            *p2 = s;
+            while (!strchr(WHITESPACE, *s)) {
+                s++;
+            }
+
+            // while (*s != 0 && !strchr(WHITESPACE, *s)) {
+            //     s++;
+            // }
+            // char* tmp = *p1;
+            // while (*tmp) {
+            //     debugf("{%c} ", *tmp);
+            //     tmp++;
+            // }
+            return 's';
+        } else if (*s == '`') {
+
+            return '`';
+        }
         // 先将s本来指向的值置为0，然后指向下一个位置
         *s++ = 0;
         *p2 = s;
@@ -269,6 +281,14 @@ int parsecmd(char** argv, int* rightpipe)
             break;
         case ')':
             break;
+        case '&':
+            debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is & ");
+            if (gettoken(0, &t) != 0) {
+                debugf("syntax error: Does not end with &\n");
+                exit();
+            }
+
+            break;
         case '+':
             // Append redirect
             debugk_user("IN user/sh.c parsecmd(), now the local variable <<c>> is >> ");
@@ -294,12 +314,6 @@ int parsecmd(char** argv, int* rightpipe)
 #ifdef RETURN_VALUE
                 int exit_code = wait(left);
                 debugk_user("IN user/sh.c parsecmd(), the local variable <<exit_code>> is %d of env %x", exit_code, syscall_getenvid());
-                // if (is_first_cmd) {
-                //     is_first_cmd = 0;
-                //     condition = exit_code == 0;
-                // } else {
-                //     condition = condition && (exit_code == 0);
-                // }
                 condition = exit_code == 0;
                 is_and = 1;
                 is_or = 0;
@@ -322,12 +336,6 @@ int parsecmd(char** argv, int* rightpipe)
 #ifdef RETURN_VALUE
                 int exit_code = wait(left);
                 debugk_user("IN user/sh.c parsecmd(), the local variable <<exit_code>> is %d of env %x", exit_code, syscall_getenvid());
-                // if (is_first_cmd) {
-                //     is_first_cmd = 0;
-                //     condition = (exit_code == 0);
-                // } else {
-                //     condition = condition || (exit_code == 0);
-                // }
                 condition = exit_code == 0;
                 is_and = 0;
                 is_or = 1;
@@ -344,6 +352,24 @@ int parsecmd(char** argv, int* rightpipe)
         }
     }
     return argc;
+}
+
+int run_internal_cmd(int argc, char** argv)
+{
+    if (!strcmp(argv[0], "jobs")) {
+        for (int i = 1; i < job_cnt; i++) {
+            printf("[%d] %-10s 0x%08x %s\n", job[i].job_id,
+                job[i].status ? "Running" : "Done", job[i].env_id, job[i].cmd);
+        }
+    } else if (!strcmp(argv[0], "fg")) {
+
+    } else if (!strcmp(argv[0], "kill")) {
+
+    } else if (!strcmp(argv[0], "history")) {
+    } else {
+        return 0;
+    }
+    return 1;
 }
 
 // *s,也就是读入的命令字符串：buf
@@ -370,26 +396,29 @@ void runcmd(char* s)
     }
 #endif
     argv[argc] = 0;
-
-    // argv[0] 表示 命令本身所代表的二进制文件的名字
-    // 最后一个cmd就是这个shell执行的
-    int child = spawn(argv[0], argv);
-    debugk_user("IN user/sh.c runcmd() , the function <<spawn>> %s: %x", argv[0], child);
-    close_all();
-    if (child >= 0) {
+    if (run_internal_cmd(argc, argv)) {
+        // run internal cmd : jobs, fg , kill ,history
+    } else { // argv[0] 表示 命令本身所代表的二进制文件的名字
+        // 最后一个cmd就是这个shell执行的
+        int child = spawn(argv[0], argv);
+        debugk_user("IN user/sh.c runcmd() , the function <<spawn>> %s: %x", argv[0], child);
+        close_all();
+        if (child >= 0) {
 #ifdef RETURN_VALUE
-        int exit_code = wait(child);
-        syscall_set_exit_code(syscall_getenvid(), exit_code);
-        debugk_user("IN user/sh.c runcmd(), the local variable <<exit_code>> from %x is %d", child, exit_code);
+            int exit_code = wait(child);
+            syscall_set_exit_code(syscall_getenvid(), exit_code);
+            debugk_user("IN user/sh.c runcmd(), the local variable <<exit_code>> from %x is %d", child, exit_code);
 #else
-        wait(child);
+            wait(child);
 #endif
-    } else {
-        debugf("spawn %s: %d\n", argv[0], child);
+        } else {
+            debugf("spawn %s: %d\n", argv[0], child);
 #ifdef RETURN_VALUE
-        syscall_set_exit_code(0, 1);
+            syscall_set_exit_code(0, 1);
 #endif
+        }
     }
+
     if (rightpipe) {
         wait(rightpipe);
     }
@@ -437,15 +466,29 @@ void readline(char* buf, u_int n)
     buf[0] = 0;
 }
 
-void process_comments(char* buf, u_int n)
+// 处理后台任务 和 处理注释
+void process(char* buf, u_int n)
 {
-    for (int i = 0; i < n; i++) {
-        if (buf[i] == '\0')
-            return;
-        if (buf[i] == '#') {
-            buf[i] = '\0';
-            return;
+    int and_index = 0, none_white = 0, i;
+    for (i = 0; i < n; i++) {
+        if (buf[i] == '\0' || buf[i] == '#')
+            break;
+        else if (buf[i] == '&')
+            and_index = i;
+        else if (!strchr(WHITESPACE, buf[i])) {
+            none_white = i;
         }
+    }
+    // 处理看是否为后台任务, 对于&的处理是直接跳过，所以这里不需要删除
+    if (none_white < and_index && buf[and_index - 1] != '&') {
+        // 说明& 和 结束符 [# '\0'] 之间没有非空白字符 且 最后不是 &&  => 是后台任务
+        job[job_cnt].job_id = job_cnt;
+        strcpy(job[job_cnt].cmd, buf);
+        job[job_cnt].status = 1; // Running
+        is_background_cmd = 1;
+    }
+    if (buf[i]) {
+        buf[i] = '\0';
     }
 }
 
@@ -509,9 +552,8 @@ int main(int argc, char** argv)
             printf("\n$ ");
         }
         readline(buf, sizeof buf);
-        is_first_cmd = 1;
         // debugk_user("IN sh.c main() the local variable <<buf>> is %s", buf);
-        process_comments(buf, sizeof buf);
+        process(buf, sizeof buf);
         // debugk_user("IN sh.c main() the local variable <<buf>> after process_comments is %s", buf);
         if (buf[0] == '#') {
             continue;
@@ -529,9 +571,14 @@ int main(int argc, char** argv)
             runcmd(buf);
             exit();
         } else {
-            // 父进程，也就是那个shell进程直接忙等
-            // TODO:想把这个优化一下
-            wait(r);
+            if (is_background_cmd) {
+                // 后台指令不需要等待了
+                job[job_cnt].env_id = r;
+                job_cnt++;
+                is_background_cmd = 0;
+            } else
+                // 父进程，也就是那个shell进程直接忙等
+                wait(r);
         }
     }
     return 0;
