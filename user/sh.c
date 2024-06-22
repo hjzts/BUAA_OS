@@ -294,12 +294,13 @@ int parsecmd(char** argv, int* rightpipe)
 #ifdef RETURN_VALUE
                 int exit_code = wait(left);
                 debugk_user("IN user/sh.c parsecmd(), the local variable <<exit_code>> is %d of env %x", exit_code, syscall_getenvid());
-                if (is_first_cmd) {
-                    is_first_cmd = 0;
-                    condition = exit_code == 0;
-                } else {
-                    condition &= (exit_code == 0);
-                }
+                // if (is_first_cmd) {
+                //     is_first_cmd = 0;
+                //     condition = exit_code == 0;
+                // } else {
+                //     condition = condition && (exit_code == 0);
+                // }
+                condition = exit_code == 0;
                 is_and = 1;
                 is_or = 0;
 #else
@@ -321,12 +322,13 @@ int parsecmd(char** argv, int* rightpipe)
 #ifdef RETURN_VALUE
                 int exit_code = wait(left);
                 debugk_user("IN user/sh.c parsecmd(), the local variable <<exit_code>> is %d of env %x", exit_code, syscall_getenvid());
-                if (is_first_cmd) {
-                    is_first_cmd = 0;
-                    condition = (exit_code == 0);
-                } else {
-                    condition |= (exit_code == 0);
-                }
+                // if (is_first_cmd) {
+                //     is_first_cmd = 0;
+                //     condition = (exit_code == 0);
+                // } else {
+                //     condition = condition || (exit_code == 0);
+                // }
+                condition = exit_code == 0;
                 is_and = 0;
                 is_or = 1;
 #else
