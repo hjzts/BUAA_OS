@@ -569,6 +569,7 @@ int main(int argc, char** argv)
         if (r == 0) {
             // 子进程负责runcmd，对那一行进行处理
             runcmd(buf);
+            syscall_ipc_try_send(syscall_get_parent_envid(), 0, 0, 0);
             exit();
         } else {
             if (is_background_cmd) {
